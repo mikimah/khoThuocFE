@@ -3,6 +3,7 @@ import api from "../services/api";
 import { useAuthStore } from "../context/useAuthStore";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import AddBtn from "../components/common/addBtn";
+import ReloadBtn from "../components/common/reloadBtn";
 
 export default function PhieuXuatView() {
   const authStore = useAuthStore();
@@ -887,7 +888,10 @@ export default function PhieuXuatView() {
         <h2 className='text-2xl font-bold text-gray-800'>
           Quản lý Xuất Kho (Bán sỉ)
         </h2>
-        <AddBtn func={openForm} placeholder='Tạo Đơn Xuất' />
+        <div className="flex gap-4">
+          <AddBtn func={openForm} placeholder='Tạo Đơn Xuất' />
+          <ReloadBtn func={getData} />
+        </div>
       </div>
       {isLoading ? (
         <div className='text-center py-10 text-gray-500'>

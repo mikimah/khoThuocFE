@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "../context/useAuthStore";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
+import ReloadBtn from "../components/common/reloadBtn";
 import api from "../services/api";
 
 export default function DonViTinhView() {
@@ -193,6 +194,8 @@ export default function DonViTinhView() {
           {authStore.isAdmin() && (
             <AddBtn func={openAddModal} placeholder='+ Thêm đơn vị quy đổi' />
           )}
+
+          <ReloadBtn func={getData} />
         </div>
       </div>
 

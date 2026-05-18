@@ -3,6 +3,7 @@ import api from "../services/api";
 import { useAuthStore } from "../context/useAuthStore";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import AddBtn from "../components/common/addBtn";
+import ReloadBtn from "../components/common/reloadBtn";
 
 
 export default function PhieuNhapView() {
@@ -742,7 +743,10 @@ export default function PhieuNhapView() {
         <h2 className='text-2xl font-bold text-gray-800'>
           Quản lý Nhập Kho (Mua hàng)
         </h2>
+        <div className="flex gap-4">
         <AddBtn func={openForm} placeholder='Tạo Phiếu Nhập' />
+        <ReloadBtn func={getData} />
+        </div>
       </div>
 
       {isLoading ? (

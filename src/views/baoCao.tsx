@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import api from "../services/api";
 import Chart from "react-apexcharts";
 import { formatCurrency } from "../utils/customFunction";
+import ReloadBtn from "../components/common/reloadBtn";
 
 export default function BaoCaoView() {
   const [tuNgay, setTuNgay] = useState("");
@@ -173,7 +174,7 @@ export default function BaoCaoView() {
     setTuNgay(toDateInput(start));
     setDenNgay(toDateInput(end));
     setSelectedQuarter("");
-    loadData(start, end);
+    getData(start, end);
   };
 
   const applyLastDays = (days: number) => {
@@ -222,7 +223,7 @@ export default function BaoCaoView() {
   const unwrapData = (res: any) =>
     res && typeof res === "object" && "data" in res ? res.data : res;
 
-  const loadData = async (startDate?: Date, endDate?: Date) => {
+  const getData = async (startDate?: Date, endDate?: Date) => {
     setIsLoading(true);
     setErrorMsg("");
     try {
@@ -261,7 +262,7 @@ export default function BaoCaoView() {
 
   const handleFilter = () => {
     setSelectedQuarter("");
-    loadData();
+    getData();
   };
 
   const handlePrint = () => {
@@ -270,7 +271,7 @@ export default function BaoCaoView() {
 
   // Load data on mount
   useEffect(() => {
-    loadData();
+    getData();
   }, []);
 
   const currentYear = new Date().getFullYear();
@@ -281,7 +282,7 @@ export default function BaoCaoView() {
       <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6'>
         <div>
           <h2 className='text-2xl font-bold text-gray-800'>
-            📊 Báo cáo Doanh thu & Lợi nhuận
+           Báo cáo Doanh thu & Lợi nhuận
           </h2>
           <p className='text-sm text-gray-500 mt-1'>
             Tổng quan hiệu quả kinh doanh theo thời gian
@@ -349,8 +350,8 @@ export default function BaoCaoView() {
           </button>
         </div>
       </div>
-
-      <div className='flex flex-wrap gap-2 mb-6 print-hidden'>
+      <div className="flex justify-between items-center mb-6 ">
+      <div className='flex flex-wrap gap-2 print-hidden '>
         <button
           onClick={() => applyLastDays(7)}
           className='px-3 py-1.5 text-xs font-bold rounded-full border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 transition'
@@ -381,6 +382,8 @@ export default function BaoCaoView() {
         >
           Năm nay
         </button>
+      </div>
+      <ReloadBtn func={getData} />
       </div>
 
       {errorMsg && (

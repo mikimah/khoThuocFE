@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import api from "../services/api";
-import { formatDate,formatCurrency } from "../utils/customFunction";
+import { formatDate, formatCurrency } from "../utils/customFunction";
+import ReloadBtn from "../components/common/reloadBtn";
 
 export default function DuyetDonHangView() {
   const [danhSachTong, setDanhSachTong] = useState<any[]>([]);
@@ -314,8 +315,6 @@ export default function DuyetDonHangView() {
     return tonHeThong - Number(row?.soluong_tru || 0);
   };
 
-
-
   return (
     <div className='bg-white p-6 rounded-xl shadow-sm border border-gray-100 min-h-screen'>
       {/* Header */}
@@ -329,33 +328,37 @@ export default function DuyetDonHangView() {
           </span>
         </div>
 
-        <div className='flex bg-gray-100 p-1 rounded-lg border'>
-          {["all", "nhap", "xuat", "kiemke"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setFilterLoai(tab)}
-              className={`px-4 py-1.5 rounded-md text-xs font-bold transition ${
-                filterLoai === tab
-                  ? "bg-white shadow " +
-                    (tab === "nhap"
-                      ? "text-purple-600"
-                      : tab === "xuat"
-                        ? "text-blue-600"
-                        : tab === "kiemke"
-                          ? "text-orange-600"
-                          : "text-gray-800")
-                  : "text-gray-500"
-              }`}
-            >
-              {tab === "all"
-                ? "Tất cả"
-                : tab === "nhap"
-                  ? "Nhập kho"
-                  : tab === "xuat"
-                    ? "Xuất kho"
-                    : "Kiểm kê"}
-            </button>
-          ))}
+        <div className='flex justify-center gap-4'>
+          <div className='flex bg-gray-100 p-1 rounded-lg border'>
+            {["all", "nhap", "xuat", "kiemke"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setFilterLoai(tab)}
+                className={`px-4 py-1.5 rounded-md text-xs font-bold transition ${
+                  filterLoai === tab
+                    ? "bg-white shadow " +
+                      (tab === "nhap"
+                        ? "text-purple-600"
+                        : tab === "xuat"
+                          ? "text-blue-600"
+                          : tab === "kiemke"
+                            ? "text-orange-600"
+                            : "text-gray-800")
+                    : "text-gray-500"
+                }`}
+              >
+                {tab === "all"
+                  ? "Tất cả"
+                  : tab === "nhap"
+                    ? "Nhập kho"
+                    : tab === "xuat"
+                      ? "Xuất kho"
+                      : "Kiểm kê"}
+              </button>
+            ))}
+          </div>
+
+          <ReloadBtn func={getData} />
         </div>
       </div>
 
