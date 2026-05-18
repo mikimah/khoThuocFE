@@ -3,6 +3,7 @@ import api from "../services/api";
 import { useAuthStore } from "../context/useAuthStore";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
+import ReloadBtn from "../components/common/reloadBtn";
 
 export default function KiemKeView() {
   const authStore = useAuthStore();
@@ -373,6 +374,8 @@ export default function KiemKeView() {
           {!authStore.isAdmin() && (
             <AddBtn func={openForm} placeholder='Lập phiếu kiểm kê mới' />
           )}
+
+          <ReloadBtn func={getData} />
         </div>
       </div>
 

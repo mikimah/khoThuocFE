@@ -4,6 +4,7 @@ import { useAuthStore } from "../context/useAuthStore";
 import { formatCurrency } from "../utils/customFunction";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
+import ReloadBtn from "../components/common/reloadBtn";
 
 export default function DoiTacView() {
   const authStore = useAuthStore();
@@ -302,8 +303,10 @@ export default function DoiTacView() {
             placeholder='Tìm tên, SĐT, email...'
           />
           {authStore.isAdmin() && (
-            <AddBtn func={openAddModal} placeholder='Thêm đối tác mới' />
+            <AddBtn func={openAddModal} placeholder='+ Thêm đối tác mới' />
           )}
+
+          <ReloadBtn func={getData} />
         </div>
       </div>
 
@@ -327,7 +330,7 @@ export default function DoiTacView() {
               : " text-gray-500 hover:text-gray-700 hover:scale-[1.05]"
           }`}
         >
-          📦 Nhà Cung Cấp
+           Nhà Cung Cấp
         </button>
         <button
           onClick={() => setActiveTab("KhachHang")}
@@ -337,7 +340,7 @@ export default function DoiTacView() {
               : "text-gray-500 hover:text-gray-700 hover:scale-[1.05]"
           }`}
         >
-          🤝 Khách Hàng
+           Khách Hàng
         </button>
       </div>
 

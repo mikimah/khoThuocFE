@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../services/api";
 import { formatDate } from "../utils/customFunction";
 import SearchInput from "../components/common/searchInput";
+import ReloadBtn from "../components/common/reloadBtn";
 
 export default function LoThuocView() {
   const [danhSachLo, setDanhSachLo] = useState<any[]>([]);
@@ -197,13 +198,17 @@ export default function LoThuocView() {
       {/* Header */}
       <div className='flex justify-between items-center mb-6'>
         <h2 className='text-2xl font-bold text-gray-800'>
-          📦 Quản lý Lô thuốc & Tồn kho
+          Quản lý Lô thuốc & Tồn kho
         </h2>
+        <div className="flex justify-center gap-4">
         <SearchInput
           searchValue={searchQuery}
           func={setSearchQuery}
           placeholder='Tìm số lô, tên thuốc...'
         />
+
+        <ReloadBtn func={getData} />
+        </div>
       </div>
 
       {/* Loading */}

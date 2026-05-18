@@ -2,6 +2,7 @@ import { useAuthStore } from "../context/useAuthStore";
 import { useState, useEffect } from "react";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
+import ReloadBtn from "../components/common/reloadBtn";
 import api from "../services/api";
 
 export default function ThuocView() {
@@ -184,6 +185,8 @@ export default function ThuocView() {
             {authStore.isAdmin() && (
               <AddBtn func={openAddModal} placeholder='+ Thêm thuốc mới' />
             )}
+
+            <ReloadBtn func={getData} />
           </div>
         </div>
 

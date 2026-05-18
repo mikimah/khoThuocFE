@@ -3,6 +3,7 @@ import api from "../services/api";
 import { useAuthStore } from "../context/useAuthStore";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
+import ReloadBtn from "../components/common/reloadBtn";
 
 export default function TaiKhoanView() {
   const authStore = useAuthStore();
@@ -193,8 +194,10 @@ export default function TaiKhoanView() {
           />
           <AddBtn
             func={() => setShowModal(true)}
-            placeholder='Cấp tài khoản mới'
+            placeholder='+ Cấp tài khoản mới'
           />
+
+          <ReloadBtn func={getData} />
         </div>
       </div>
 

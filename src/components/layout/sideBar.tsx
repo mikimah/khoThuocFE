@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../../context/useAuthStore';
 import styles from '../../styles/sideBar.module.css';
+import { ChartColumnBig,Pill,Scale,Boxes,Handshake,Box,Truck,CircleCheck,Clipboard,ScrollText,Users,ChartNoAxesCombined } from 'lucide-react';
 
 export default function SideBar() {
     const authStore = useAuthStore();
@@ -20,55 +21,55 @@ export default function SideBar() {
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                 <NavLink to={'/'} 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                📊 Tổng quan
+                <ChartColumnBig className="inline-block w-5 h-5 mr-2" /> Tổng quan
                 </NavLink>
                 <NavLink to="/thuoc" 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                💊 Danh mục Thuốc
+                <Pill className="inline-block w-5 h-5 mr-2" /> Danh mục Thuốc
                 </NavLink>
                 <NavLink to="/don-vi-tinh" 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                ⚖️ Đơn vị tính
+                <Scale className="inline-block w-5 h-5 mr-2" /> Đơn vị tính
                 </NavLink>
                 <NavLink to="/lo-thuoc" 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                📦 Quản lý Lô
+                <Boxes className="inline-block w-5 h-5 mr-2" /> Quản lý Lô
                 </NavLink>
                 <NavLink to="/doi-tac" 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                🤝 Đối tác
+                <Handshake className="inline-block w-5 h-5 mr-2" /> Đối tác
                 </NavLink>
 
                 {!authStore.isAdmin() && <NavLink to="/nhap-kho" 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                    📦 Nhập kho
+                    <Box className="inline-block w-5 h-5 mr-2" /> Nhập kho
                 </NavLink>}
                 {!authStore.isAdmin() && <NavLink to="/xuat-kho" 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                    🚚 Xuất kho
+                    <Truck className="inline-block w-5 h-5 mr-2" /> Xuất kho
                 </NavLink>}
 
                 {authStore.isAdmin() && <NavLink to="/duyet-don" 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                ✅ Duyệt đơn hàng
+                <CircleCheck className="inline-block w-5 h-5 mr-2" /> Duyệt đơn hàng
                 </NavLink>}
 
                 <NavLink to="/kiem-ke" 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                    📋 Kiểm kê
+                    <Clipboard className="inline-block w-5 h-5 mr-2" /> Kiểm kê
                 </NavLink>
 
                 {authStore.isAdmin() && <NavLink to="/lich-su-don-hang" 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                📜 Lịch sử giao dịch
+                <ScrollText className="inline-block w-5 h-5 mr-2" /> Lịch sử giao dịch
                 </NavLink>}
                 {authStore.isAdmin() && <NavLink to="/tai-khoan" 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                    👥 Tài khoản
+                    <Users className="inline-block w-5 h-5 mr-2" /> Tài khoản
                 </NavLink>}
                 {authStore.isAdmin() && <NavLink to="/bao-cao" 
                     className={({ isActive }) => isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem}>
-                📈 Báo cáo Doanh thu
+                <ChartNoAxesCombined className="inline-block w-5 h-5 mr-2" /> Báo cáo Doanh thu
                 </NavLink>}
             </nav>
             </aside>

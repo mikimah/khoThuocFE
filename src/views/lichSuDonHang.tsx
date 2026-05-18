@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import api from "../services/api";
 import { formatDate, formatCurrency } from "../utils/customFunction";
+import ReloadBtn from "../components/common/reloadBtn";
+import { Search } from "lucide-react";
 
 export default function LichSuDonHangView() {
   const [danhSachDonHang, setDanhSachDonHang] = useState<any[]>([]);
@@ -234,14 +236,9 @@ export default function LichSuDonHangView() {
     <div className='bg-white p-6 rounded-xl shadow-sm border border-gray-100 min-h-screen'>
       <div className='flex justify-between items-center mb-6'>
         <h2 className='text-2xl font-bold text-gray-800'>
-          📜 Lịch sử Giao dịch
+           Lịch sử Giao dịch
         </h2>
-        <button
-          onClick={getData}
-          className='text-gray-500 hover:text-blue-600 font-medium text-sm flex items-center gap-1 transition'
-        >
-          🔄 Làm mới dữ liệu
-        </button>
+        <ReloadBtn func={getData} />
       </div>
 
       <div className='flex flex-wrap gap-4 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200'>
@@ -257,7 +254,7 @@ export default function LichSuDonHangView() {
               placeholder='Tìm mã đơn, tên đối tác...'
               className='w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500'
             />
-            <span className='absolute right-3 top-2.5 text-gray-400'>🔍</span>
+            <span className='absolute right-3 top-[45%] transform -translate-y-1/2 text-gray-400'><Search className="inline-block w-5 h-5" /></span>
           </div>
         </div>
 
