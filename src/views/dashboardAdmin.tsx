@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { formatCurrency } from "../utils/customFunction"
 import { Link } from "react-router-dom"
 import api from "../services/api"
-
+import { showSuccess,showError } from "../utils/notify"
 
 export default function DashboardAdmin() {
     const [isLoading, setIsLoading] = useState(true);
@@ -51,7 +51,8 @@ export default function DashboardAdmin() {
             setDanhSachDonMoiNhat(donMoiNhat);
 
         } catch (error) {
-            console.error('Lỗi tải Dashboard:', error);
+            showError('Lỗi tải Dashboard:');
+            console.log(error);
         } finally {
             setIsLoading(false);
         }        

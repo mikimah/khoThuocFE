@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import api from "../services/api";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import ReloadBtn from "../components/common/reloadBtn";
+import { showSuccess,showError } from "../utils/notify";
 
 export default function DuyetDonHangView() {
   const [danhSachTong, setDanhSachTong] = useState<any[]>([]);
@@ -55,7 +56,7 @@ export default function DuyetDonHangView() {
       );
       setDanhSachTong(combined);
     } catch (error) {
-      console.error("Lỗi tải dữ liệu kiểm duyệt:", error);
+      showError("Lỗi tải dữ liệu kiểm duyệt");
     } finally {
       setIsLoading(false);
     }
@@ -177,13 +178,14 @@ export default function DuyetDonHangView() {
 
     try {
       await api.put(`/donhang/${id}/trangthai`, { trangthai: "daduyet" });
-      alert(`Đã duyệt thành công!`);
+      showSuccess(`Đã duyệt thành công!`);
       getData();
     } catch (error: any) {
-      alert(
+      console.log(
         "Lỗi khi duyệt đơn: " +
           (error.response?.data?.message || error.message || "Lỗi hệ thống"),
       );
+      showError("Lỗi khi duyệt đơn");
     }
   };
 
@@ -200,6 +202,7 @@ export default function DuyetDonHangView() {
       alert(
         "Lỗi khi hủy đơn: " + (error.response?.data?.message || "Lỗi hệ thống"),
       );
+      showError("Lỗi khi hủy đơn");
     }
   };
 
@@ -216,13 +219,14 @@ export default function DuyetDonHangView() {
       await api.put(`/phieukiemke/${maphieu}/trangthai`, {
         trangthai: "hoanthanh",
       });
-      alert(`Đã hoàn tất kiểm kê và cập nhật kho!`);
+      showSuccess(`Đã hoàn tất kiểm kê và cập nhật kho!`);
       getData();
     } catch (error: any) {
-      alert(
+      console.log(
         "Lỗi khi duyệt phiếu kiểm kê: " +
           (error.response?.data?.message || "Lỗi hệ thống"),
       );
+      showError("Lỗi khi duyệt phiếu kiểm kê");
     }
   };
 
@@ -237,13 +241,14 @@ export default function DuyetDonHangView() {
 
     try {
       await api.put(`/phieukiemke/${maphieu}/trangthai`, { trangthai: "huy" });
-      alert(`Đã từ chối phiếu kiểm kê!`);
+      showSuccess(`Đã từ chối phiếu kiểm kê!`);
       getData();
     } catch (error: any) {
-      alert(
+      console.log(
         "Lỗi khi từ chối phiếu kiểm kê: " +
           (error.response?.data?.message || "Lỗi hệ thống"),
       );
+      showError("Lỗi khi từ chối phiếu kiểm kê");
     }
   };
 
@@ -277,10 +282,11 @@ export default function DuyetDonHangView() {
         setSelectedDetails(resDetails.data || []);
       }
     } catch (error: any) {
-      alert(
+      console.log(
         "Lỗi khi tải chi tiết: " +
           (error.response?.data?.message || error.message || "Lỗi hệ thống"),
       );
+      showError("Lỗi khi tải chi tiết");
     } finally {
       setIsLoadingDetail(false);
     }

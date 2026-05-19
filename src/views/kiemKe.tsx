@@ -4,6 +4,7 @@ import { useAuthStore } from "../context/useAuthStore";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
+import { showSuccess,showError } from "../utils/notify";
 
 export default function KiemKeView() {
   const authStore = useAuthStore();
@@ -45,6 +46,7 @@ export default function KiemKeView() {
       setDanhSachLo(resLo.data || []);
     } catch (error) {
       console.error("Lỗi tải dữ liệu kiểm kê:", error);
+      showError("Lỗi tải dữ liệu kiểm kê");
     } finally {
       setIsLoading(false);
     }
@@ -144,7 +146,8 @@ export default function KiemKeView() {
       const res: any = await api.get(`/chitietkiemke/phieu/${phieu.maphieu}`);
       setSelectedDetails(res.data || []);
     } catch (error: any) {
-      alert("Lỗi tải chi tiết kiểm kê: " + (error.message || "Lỗi hệ thống"));
+      console.log("Lỗi tải chi tiết kiểm kê: " + (error.message || "Lỗi hệ thống"));
+      showError("Lỗi tải chi tiết kiểm kê");
     } finally {
       setIsLoadingDetail(false);
     }
@@ -223,7 +226,7 @@ export default function KiemKeView() {
 
   const handleSaveKiemKe = async () => {
     if (chiTietKiemKe.length === 0) {
-      alert("Vui lòng thêm ít nhất một mặt hàng để kiểm kê!");
+      showError("Vui lòng thêm ít nhất một mặt hàng để kiểm kê!");
       return;
     }
 
@@ -243,11 +246,12 @@ export default function KiemKeView() {
       );
 
       await Promise.all(promises);
-      alert("Đã gửi phiếu kiểm kê! Chờ Admin phê duyệt để cập nhật kho.");
+      showSuccess("Đã gửi phiếu kiểm kê! Chờ Admin phê duyệt để cập nhật kho.");
       setShowForm(false);
       getData();
     } catch (error: any) {
-      alert("Lỗi khi lưu phiếu kiểm kê: " + error.message);
+      console.log("Lỗi khi lưu phiếu kiểm kê: " + error.message);
+      showError("Lỗi khi lưu phiếu kiểm kê");
     } finally {
       setIsLoading(false);
     }

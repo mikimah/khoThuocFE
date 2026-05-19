@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useAuthStore } from "../context/useAuthStore";
+import { showSuccess } from "../utils/notify";
+import { useNavigate } from "react-router-dom";
 
 
 export default function LoginView() {
@@ -8,6 +10,7 @@ export default function LoginView() {
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const authStore = useAuthStore();
+    const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -17,13 +20,16 @@ export default function LoginView() {
         try {
             // Gọi function login từ authStore
             await authStore.login(tendangnhap, matkhau);
-            // Nếu thành công, redirect sẽ xảy ra trong authStore
+            showSuccess("Đăng nhập thành công");
+            navigate("/",{replace: true}); // Redirect về trang chính
         } catch (error) {
             setErrorMessage(error.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
         } finally {
             setIsLoading(false);
         }
     };
+
+
 
   return (
     <>

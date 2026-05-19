@@ -5,6 +5,7 @@ import { formatCurrency } from "../utils/customFunction";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
+import { showSuccess,showError } from "../utils/notify";
 
 export default function DoiTacView() {
   const authStore = useAuthStore();
@@ -42,7 +43,8 @@ export default function DoiTacView() {
       const res: any = await api.get("/doitac");
       setDanhSachDoiTac(res.data || []);
     } catch (error) {
-      console.error("Lỗi tải dữ liệu đối tác:", error);
+      showError("Lỗi tải dữ liệu đối tác:");
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -207,12 +209,12 @@ export default function DoiTacView() {
     e.preventDefault();
 
     if (!authStore.isAdmin()) {
-      alert("Bạn không có quyền chỉnh sửa đối tác");
+      showError("Bạn không có quyền chỉnh sửa đối tác");
       return;
     }
 
     if (!formData.tendoitac || !formData.loaidoitac) {
-      alert("Vui lòng nhập Tên đối tác và Loại đối tác!");
+      showError("Vui lòng nhập Tên đối tác và Loại đối tác!");
       return;
     }
 
@@ -221,29 +223,29 @@ export default function DoiTacView() {
     const diachi = (formData.diachi || "").trim();
 
     if (!phone || !email) {
-      alert("Số điện thoại và email không được để trống!");
+      showError("Số điện thoại và email không được để trống!");
       return;
     }
 
     if (!diachi) {
-      alert("Địa chỉ không được để trống!");
+      showError("Địa chỉ không được để trống!");
       return;
     }
 
     if (!isValidPhone(phone)) {
-      alert("Số điện thoại phải có 8 hoặc 10 chữ số!");
+      showError("Số điện thoại phải có 8 hoặc 10 chữ số!");
       return;
     }
 
     if (!isValidEmail(email)) {
-      alert("Email phải có tên miền sau @");
+      showError("Email phải có tên miền sau @");
       return;
     }
 
     // KIỂM TRA ĐỊNH DẠNG MÃ SỐ THUẾ
     const mst = (formData.masothue || "").trim();
     if (mst && !/^(\d{10}|\d{13})$/.test(mst)) {
-      alert("LỖI: Mã số thuế phải bao gồm ĐÚNG 10 hoặc 13 CHỮ SỐ liên tiếp!");
+      showError("LỖI: Mã số thuế phải bao gồm ĐÚNG 10 hoặc 13 CHỮ SỐ liên tiếp!");
       return;
     }
 
@@ -263,8 +265,10 @@ export default function DoiTacView() {
       }
       setShowModal(false);
       getData();
+      showSuccess("Thao tác thành công");
     } catch (error: any) {
-      alert(error.message || "Thao tác thất bại");
+      console.log(error.message || "Thao tác thất bại");
+      showError("Thao tác thất bại");
     } finally {
       setIsSaving(false);
     }
@@ -272,7 +276,7 @@ export default function DoiTacView() {
 
   const handleDelete = async (id: number) => {
     if (!authStore.isAdmin()) {
-      alert("Bạn không có quyền xóa đối tác");
+      showError("Bạn không có quyền xóa đối tác");
       return;
     }
 
@@ -284,8 +288,10 @@ export default function DoiTacView() {
       try {
         await api.delete(`/doitac/${id}`);
         getData();
+        showSuccess("Đã xóa đối tác!");
       } catch (error: any) {
-        alert(error.message || "Xóa thất bại");
+        console.log(error.message || "Xóa thất bại");
+        showError("Xóa thất bại");
       }
     }
   };

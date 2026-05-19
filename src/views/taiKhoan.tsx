@@ -4,6 +4,7 @@ import { useAuthStore } from "../context/useAuthStore";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
+import { showSuccess,showError } from "../utils/notify";
 
 export default function TaiKhoanView() {
   const authStore = useAuthStore();
@@ -37,6 +38,7 @@ export default function TaiKhoanView() {
       setDanhSachTK(res.data || []);
     } catch (error) {
       console.error("Lỗi tải tài khoản:", error);
+      showError("Không thể tải danh sách tài khoản");
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +98,7 @@ export default function TaiKhoanView() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.tendangnhap || !formData.matkhau) {
-      alert("Vui lòng nhập đủ thông tin!");
+      showError("Vui lòng nhập đủ thông tin!");
       return;
     }
 
@@ -104,6 +106,7 @@ export default function TaiKhoanView() {
     try {
       await api.post("/taikhoan", formData);
       alert("Cấp tài khoản thành công!");
+      showSuccess("Cấp tài khoản thành công!");
       setShowModal(false);
       setFormData({
         tendangnhap: "",
@@ -133,7 +136,7 @@ export default function TaiKhoanView() {
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passwordData.matKhauCu || !passwordData.matKhauMoi) {
-      alert("Vui lòng nhập đủ mật khẩu cũ và mới!");
+      showError("Vui lòng nhập đủ mật khẩu cũ và mới!");
       return;
     }
 
@@ -142,10 +145,11 @@ export default function TaiKhoanView() {
         matKhauCu: passwordData.matKhauCu,
         matKhauMoi: passwordData.matKhauMoi,
       });
-      alert("Đã đổi mật khẩu thành công!");
+      showSuccess("Đã đổi mật khẩu thành công!");
       setShowPasswordModal(false);
     } catch (error: any) {
-      alert(error.message || "Không thể đổi mật khẩu");
+      showError("Không thể đổi mật khẩu");
+      console.error("Lỗi đổi mật khẩu:", error);
     }
   };
 
@@ -170,9 +174,11 @@ export default function TaiKhoanView() {
     ) {
       try {
         await api.delete(`/taikhoan/${id}`);
+        showSuccess("Xóa tài khoản thành công");
         getData();
       } catch (error: any) {
-        alert(error.message || "Xóa thất bại");
+        showError("Xóa tài khoản thất bại");
+        console.error("Lỗi xóa tài khoản:", error);
       }
     }
   };

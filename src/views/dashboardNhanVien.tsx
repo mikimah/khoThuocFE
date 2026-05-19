@@ -2,7 +2,7 @@ import { useAuthStore } from "../context/useAuthStore";
 import { useState, useEffect, useMemo } from "react";
 import api from "../services/api";
 import { formatCurrency } from "../utils/customFunction"
-
+import { showSuccess,showError } from "../utils/notify";
 
 export default function DashboardNhanVienView() {
     const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +29,8 @@ export default function DashboardNhanVienView() {
         setTatCaViTri(resViTri.data || []);
         setIsLoading(false);
         } catch (error) {
-            console.error('Lỗi tải Dashboard nhân viên:', error);
+            showError('Lỗi tải Dashboard nhân viên:');
+            console.log(error);
         }finally{
             setIsLoading(false);
         }

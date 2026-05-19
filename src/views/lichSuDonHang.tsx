@@ -3,6 +3,7 @@ import api from "../services/api";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import ReloadBtn from "../components/common/reloadBtn";
 import { Search } from "lucide-react";
+import { showSuccess,showError } from "../utils/notify";
 
 export default function LichSuDonHangView() {
   const [danhSachDonHang, setDanhSachDonHang] = useState<any[]>([]);
@@ -31,6 +32,7 @@ export default function LichSuDonHangView() {
       setDanhSachDonVi(resDV.data || []);
     } catch (error) {
       console.error("Lỗi tải dữ liệu lịch sử đơn hàng:", error);
+      showError("Lỗi tải dữ liệu lịch sử đơn hàng");
     } finally {
       setIsLoading(false);
     }
@@ -204,10 +206,11 @@ export default function LichSuDonHangView() {
       setSelectedMaster({ ...master, loaidonhang: dh.loaidonhang });
       setSelectedDetails(resDetails.data || []);
     } catch (error: any) {
-      alert(
+      console.log(
         "Lỗi tải chi tiết: " +
           (error.response?.data?.message || error.message || "Lỗi hệ thống"),
       );
+      showError("Lỗi tải chi tiết đơn hàng");
     } finally {
       setIsLoadingDetail(false);
     }
