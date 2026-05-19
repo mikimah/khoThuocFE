@@ -3,6 +3,7 @@ import api from "../services/api";
 import { formatDate } from "../utils/customFunction";
 import SearchInput from "../components/common/searchInput";
 import ReloadBtn from "../components/common/reloadBtn";
+import { showSuccess,showError } from "../utils/notify";
 
 export default function LoThuocView() {
   const [danhSachLo, setDanhSachLo] = useState<any[]>([]);
@@ -47,6 +48,7 @@ export default function LoThuocView() {
       setDanhSachViTri(resViTri.data || []);
     } catch (error) {
       console.error("Lỗi tải dữ liệu lô:", error);
+      showError("Lỗi tải dữ liệu lô thuốc");
     } finally {
       setIsLoading(false);
     }
@@ -175,14 +177,13 @@ export default function LoThuocView() {
     try {
       if (editingId) {
         await api.put(`/lothuoc/${editingId}`, formData);
-        alert("Cập nhật thông tin lô thành công!");
+        showSuccess("Cập nhật thông tin lô thành công!");
       }
       setShowModal(false);
       getData();
     } catch (error: any) {
-      alert(
-        error.response?.data?.message || error.message || "Lỗi khi lưu dữ liệu",
-      );
+      showError("Có lỗi xảy ra khi lưu dữ liệu");
+      console.error("Lỗi khi lưu:", error);
     } finally {
       setIsSaving(false);
     }

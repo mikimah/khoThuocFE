@@ -4,6 +4,7 @@ import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
 import api from "../services/api";
+import { showSuccess,showError } from "../utils/notify";
 
 export default function DonViTinhView() {
   const authStore = useAuthStore();
@@ -33,7 +34,8 @@ export default function DonViTinhView() {
       setDanhSachDonVi(resDV.data || []);
       setDanhSachThuoc(resThuoc.data || []);
     } catch (error) {
-      console.error("Lỗi tải dữ liệu:", error);
+      showError("Lỗi tải dữ liệu:");
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -118,12 +120,12 @@ export default function DonViTinhView() {
     e.preventDefault();
 
     if (!authStore.isAdmin()) {
-      alert("Bạn không có quyền chỉnh sửa đơn vị tính");
+      showError("Bạn không có quyền chỉnh sửa đơn vị tính");
       return;
     }
 
     if (!formData.mathuoc || !formData.tendonvi || !formData.hesoquydoi) {
-      alert("Vui lòng nhập đủ thông tin (*)");
+      showError("Vui lòng nhập đủ thông tin (*)");
       return;
     }
 
@@ -137,7 +139,8 @@ export default function DonViTinhView() {
       setShowModal(false);
       getData();
     } catch (error: any) {
-      alert(error.message || "Thao tác thất bại");
+      console.log(error.message || "Thao tác thất bại");
+      showError("Thao tác thất bại");
     } finally {
       setIsSaving(false);
     }
@@ -156,9 +159,11 @@ export default function DonViTinhView() {
 
     try {
       await api.delete(`/donvitinh/${id}`);
+      showSuccess("Đã xóa đơn vị quy đổi!");
       getData();
     } catch (error: any) {
-      alert(error.message || "Xóa thất bại");
+      console.log(error.message || "Xóa thất bại");
+      showError("Xóa thất bại");
     }
   };
 

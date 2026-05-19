@@ -4,6 +4,7 @@ import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
 import api from "../services/api";
+import { showSuccess,showError } from "../utils/notify";
 
 export default function ThuocView() {
   const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +37,7 @@ export default function ThuocView() {
       setTatCaThuoc(res.data || []);
     } catch (error) {
       console.error("Lỗi tải danh sách thuốc:", error);
+      showError("Lỗi tải danh sách thuốc");
     } finally {
       setIsLoading(false);
     }
@@ -95,10 +97,11 @@ export default function ThuocView() {
         await api.post("/thuoc", formData);
       }
       setShowModal(false);
+      showSuccess(isEditMode ? "Cập nhật thuốc thành công" : "Thêm thuốc thành công");
       getData();
     } catch (error) {
       console.error("Lỗi lưu thuốc:", error);
-      alert("Lỗi khi lưu dữ liệu");
+      showError("Lỗi khi lưu dữ liệu");
     } finally {
       setIsSaving(false);
     }
@@ -109,9 +112,10 @@ export default function ThuocView() {
     try {
       await api.delete(`/thuoc/${mathuoc}`);
       getData();
+      showSuccess("Đã xóa thuốc!");
     } catch (error) {
       console.error("Lỗi xóa thuốc:", error);
-      alert("Lỗi khi xóa dữ liệu");
+      showError("Lỗi khi xóa dữ liệu");
     }
   }
 

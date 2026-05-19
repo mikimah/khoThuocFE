@@ -4,7 +4,7 @@ import { useAuthStore } from "../context/useAuthStore";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
-
+import { showSuccess,showError } from "../utils/notify";
 
 export default function PhieuNhapView() {
   const authStore = useAuthStore();
@@ -67,6 +67,7 @@ export default function PhieuNhapView() {
       setDanhSachDonVi(resDV.data || []);
     } catch (error) {
       console.error("Lỗi tải dữ liệu:", error);
+      showError("Không thể tải dữ liệu");
     } finally {
       setIsLoading(false);
     }
@@ -294,7 +295,8 @@ export default function PhieuNhapView() {
       setSelectedMaster(resMaster.data || dh);
       setSelectedDetails(resDetails.data || []);
     } catch (error: any) {
-      alert("Lỗi tải chi tiết: " + (error.message || "Lỗi hệ thống"));
+      console.log("Lỗi tải chi tiết: " + (error.message || "Lỗi hệ thống"));
+      showError("Không thể tải chi tiết đơn hàng");
     } finally {
       setIsLoadingDetail(false);
     }
@@ -377,13 +379,13 @@ export default function PhieuNhapView() {
 
   const handleSaveDonHang = async () => {
     if (!masterForm.madoitac || chiTietData.length === 0) {
-      alert("Vui lòng chọn Nhà cung cấp và thêm mặt hàng!");
+      showError("Vui lòng chọn Nhà cung cấp và thêm mặt hàng!");
       return;
     }
 
     const soHoaDon = (masterForm.sohoadongtgt || "").trim();
     if (soHoaDon && !/^\d{7}$/.test(soHoaDon)) {
-      alert(
+      showError(
         "LỖI: Số hóa đơn GTGT (nếu có) phải bao gồm ĐÚNG 7 CHỮ SỐ liên tiếp!",
       );
       return;
@@ -398,12 +400,12 @@ export default function PhieuNhapView() {
           !item.ngaysanxuat,
       )
     ) {
-      alert("Vui lòng nhập đủ Đơn vị, Số Lô, Ngày sản xuất và Hạn sử dụng!");
+      showError("Vui lòng nhập đủ Đơn vị, Số Lô, Ngày sản xuất và Hạn sử dụng!");
       return;
     }
 
     if (chiTietData.some((item) => item.soluongthucte > item.soluongyeucau)) {
-      alert("Lỗi: Tồn tại mặt hàng có số lượng thực nhận lớn hơn chứng từ!");
+      showError("Lỗi: Tồn tại mặt hàng có số lượng thực nhận lớn hơn chứng từ!");
       return;
     }
 
@@ -426,14 +428,14 @@ export default function PhieuNhapView() {
       const nsx = new Date(item.ngaysanxuat);
 
       if (nsx >= hsd) {
-        alert(
+        showError(
           `LỖI: Tại mặt hàng [${thuoc.tenthuoc}], Ngày sản xuất phải diễn ra TRƯỚC Hạn sử dụng!`,
         );
         return;
       }
 
       if (hsd <= ngayNhap) {
-        alert(
+        showError(
           `LỖI: Thuốc [${thuoc.tenthuoc}] đã hết hạn sử dụng. Không được phép nhập kho!`,
         );
         return;
@@ -448,7 +450,7 @@ export default function PhieuNhapView() {
           (ngayNhap.getMonth() - nsx.getMonth());
 
         if (thangTuoiTho <= 36 && thangTuNgaySanXuat > 6) {
-          alert(
+          showError(
             `LỖI GSP: Thuốc nhập khẩu [${thuoc.tenthuoc}] có tuổi thọ ${thangTuoiTho} tháng.\nQuy định: Không được nhập kho khi đã quá 6 tháng kể từ Ngày Sản Xuất (Lô này đã qua ${thangTuNgaySanXuat} tháng)!`,
           );
           return;
@@ -490,11 +492,12 @@ export default function PhieuNhapView() {
       );
 
       await Promise.all(promises);
-      alert("Tạo Phiếu Nhập thành công! Đang chờ Admin duyệt để cộng tồn kho.");
+      showSuccess("Tạo Phiếu Nhập thành công! Đang chờ Admin duyệt để cộng tồn kho.");
       closeForm();
       getData();
     } catch (error: any) {
-      alert("Lỗi khi lưu: " + error.message);
+      console.error("Lỗi khi lưu:", error);
+      showError("Có lỗi xảy ra khi lưu phiếu nhập");
     } finally {
       setIsLoading(false);
     }

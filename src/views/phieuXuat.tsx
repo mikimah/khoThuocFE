@@ -4,6 +4,7 @@ import { useAuthStore } from "../context/useAuthStore";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
+import { showSuccess,showError } from "../utils/notify";
 
 export default function PhieuXuatView() {
   const authStore = useAuthStore();
@@ -54,8 +55,10 @@ export default function PhieuXuatView() {
             String(lo.trangthai || "").toLowerCase() === "sansangban",
         ),
       );
+
     } catch (error) {
       console.error("Lỗi tải dữ liệu:", error);
+      showError("Không thể tải dữ liệu");
     } finally {
       setIsLoading(false);
     }
@@ -482,7 +485,7 @@ export default function PhieuXuatView() {
 
   const handleSaveDonHang = async () => {
     if (!masterForm.madoitac || chiTietData.length === 0) {
-      alert("Vui lòng chọn khách hàng và thêm mặt hàng!");
+      showError("Vui lòng chọn khách hàng và thêm mặt hàng!");
       return;
     }
 
@@ -490,7 +493,7 @@ export default function PhieuXuatView() {
       !masterForm.mavandon3pl ||
       String(masterForm.mavandon3pl).trim() === ""
     ) {
-      alert("Vui lòng nhập hoặc tự tạo Mã vận đơn!");
+      showError("Vui lòng nhập hoặc tự tạo Mã vận đơn!");
       return;
     }
 
@@ -527,11 +530,12 @@ export default function PhieuXuatView() {
         }),
       );
       await Promise.all(promises);
-      alert("Tạo Đơn Bán Hàng thành công!");
+      showSuccess("Tạo Đơn Bán Hàng thành công!");
       closeForm();
       getData();
     } catch (error: any) {
-      alert("Lỗi khi lưu: " + error.message);
+      showError("Có lỗi xảy ra khi lưu đơn hàng");
+      console.error("Lỗi khi lưu:", error);
     } finally {
       setIsLoading(false);
     }
@@ -548,6 +552,7 @@ export default function PhieuXuatView() {
       setChiTietDonHang(res.data || []);
     } catch (error) {
       console.error("Lỗi tải chi tiết đơn hàng:", error);
+      showError("Không thể tải chi tiết đơn hàng");
     } finally {
       setIsLoadingDetail(false);
     }

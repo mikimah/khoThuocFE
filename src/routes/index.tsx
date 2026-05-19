@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter,Navigate } from 'react-router-dom';
 import LoginView from '../views/login';
 import SideBar from '../components/layout/sideBar';
 import DashboardAdminView from '../views/dashboardAdmin';
@@ -12,7 +12,6 @@ import KiemKeView from '../views/kiemKe';
 import LichSuDonHangView from '../views/lichSuDonHang';
 import TaiKhoanView from '../views/taiKhoan';
 import BaoCaoView from '../views/baoCao';
-import { ProtectedRoute } from './protectedRoute';
 import { useAuthStore } from '../context/useAuthStore';
 import PhieuNhapView from '../views/phieuNhap';
 import PhieuXuatView from '../views/phieuXuat';
@@ -24,10 +23,28 @@ function DashboardWrapper() {
   return authStore.isAdmin() ? <DashboardAdminView /> : <DashboardNhanVienView />;
 }
 
+function LoginWrapper(){
+  const authStore = useAuthStore();
+  return authStore.isAuthenticated() ? <Navigate to="/" replace /> : <LoginView />;
+}
+
+function ProtectedRoute({ children }) {
+  const authStore = useAuthStore();
+
+  // Nếu chưa đăng nhập, redirect về login
+  if (!authStore.isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  } else {
+    return children;
+  }
+
+}
+
+
 const router = createBrowserRouter([
   {
     path: '/login',
-    element: <LoginView />,
+    element: <LoginWrapper />,
   },
   {
     path: '/',
@@ -36,7 +53,8 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <DashboardWrapper />,
-      },{
+      },
+      {
         path: 'thuoc',
         element: <ThuocView />,
       },{
