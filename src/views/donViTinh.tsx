@@ -3,6 +3,9 @@ import { useAuthStore } from "../context/useAuthStore";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
+import EditBtn from "../components/common/editBtn";
+import DeleteBtn from "../components/common/deleteBtn";
+import ConfirmBox from "../components/common/confirmBox";
 import api from "../services/api";
 import { showSuccess,showError } from "../utils/notify";
 
@@ -17,6 +20,7 @@ export default function DonViTinhView() {
   const [isSaving, setIsSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isDelete, setIsDelete] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const defaultForm = { mathuoc: "", tendonvi: "", hesoquydoi: 1 };
@@ -34,7 +38,7 @@ export default function DonViTinhView() {
       setDanhSachDonVi(resDV.data || []);
       setDanhSachThuoc(resThuoc.data || []);
     } catch (error) {
-      showError("Lỗi tải dữ liệu:");
+      showError("Lỗi tải dữ liệu");
       console.log(error);
     } finally {
       setIsLoading(false);
@@ -61,21 +65,11 @@ export default function DonViTinhView() {
           <td className='p-4 text-gray-800 font-medium'>
             {dv.tenthuoc || `THUOC-${dv.mathuoc}`}
           </td>
-          <td className='p-4 flex gap-3'>
+          <td className='p-4 flex gap-3 '>
             {authStore.isAdmin() && (
               <>
-                <button
-                  onClick={() => openEditModal(dv)}
-                  className='text-blue-600 hover:underline font-medium text-sm'
-                >
-                  Sửa
-                </button>
-                <button
-                  onClick={() => handleDelete(dv.madonvitinh)}
-                  className='text-red-600 hover:underline font-medium text-sm'
-                >
-                  Xóa
-                </button>
+                <EditBtn func={() => openEditModal(dv)} />
+                <DeleteBtn func={() => setIsDelete(dv.madonvitinh)} />
               </>
             )}
           </td>
@@ -137,10 +131,11 @@ export default function DonViTinhView() {
         await api.post("/donvitinh", formData);
       }
       setShowModal(false);
+      showSuccess(`Đã ${isEditMode ? "cập nhật" : "thêm"} đơn vị quy đổi!`);
       getData();
     } catch (error: any) {
       console.log(error.message || "Thao tác thất bại");
-      showError("Thao tác thất bại");
+      showError(error.message || "Thao tác thất bại");
     } finally {
       setIsSaving(false);
     }
@@ -153,9 +148,6 @@ export default function DonViTinhView() {
       return;
     }
 
-    if (!window.confirm("Bạn có chắc chắn muốn xóa đơn vị quy đổi này?")) {
-      return;
-    }
 
     try {
       await api.delete(`/donvitinh/${id}`);
@@ -163,7 +155,9 @@ export default function DonViTinhView() {
       getData();
     } catch (error: any) {
       console.log(error.message || "Xóa thất bại");
-      showError("Xóa thất bại");
+      showError(error.message + "" || "Xóa thất bại");
+    } finally {
+      setIsDelete(null);
     }
   };
 
@@ -328,6 +322,15 @@ export default function DonViTinhView() {
           </div>
         </div>
       )}
+
+      {isDelete && (
+        <ConfirmBox
+          message='Bạn có chắc chắn muốn xóa đơn vị tính này?'
+          onConfirm={() => handleDelete(isDelete)}
+          onCancel={() => setIsDelete(null)}
+        />
+      )}
+
     </div>
   );
 }

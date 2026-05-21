@@ -147,7 +147,7 @@ export default function KiemKeView() {
       setSelectedDetails(res.data || []);
     } catch (error: any) {
       console.log("Lỗi tải chi tiết kiểm kê: " + (error.message || "Lỗi hệ thống"));
-      showError("Lỗi tải chi tiết kiểm kê");
+      showError(error.message || "Lỗi tải chi tiết kiểm kê");
     } finally {
       setIsLoadingDetail(false);
     }
@@ -251,7 +251,7 @@ export default function KiemKeView() {
       getData();
     } catch (error: any) {
       console.log("Lỗi khi lưu phiếu kiểm kê: " + error.message);
-      showError("Lỗi khi lưu phiếu kiểm kê");
+      showError(error.message || "Lỗi khi lưu phiếu kiểm kê");
     } finally {
       setIsLoading(false);
     }

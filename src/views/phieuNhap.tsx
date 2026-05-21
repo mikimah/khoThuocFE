@@ -345,7 +345,7 @@ export default function PhieuNhapView() {
 
   const validateSoLuong = (item: any, index: number) => {
     if (item.soluongthucte > item.soluongyeucau) {
-      alert(
+      showError(
         `LỖI: Số lượng thực nhận (${item.soluongthucte}) không được lớn hơn số lượng trên chứng từ (${item.soluongyeucau})!\nVui lòng lập biên bản thừa hàng nếu NCC giao dư.`,
       );
       const updatedData = [...chiTietData];
@@ -497,7 +497,7 @@ export default function PhieuNhapView() {
       getData();
     } catch (error: any) {
       console.error("Lỗi khi lưu:", error);
-      showError("Có lỗi xảy ra khi lưu phiếu nhập");
+      showError( error.message || "Có lỗi xảy ra khi lưu phiếu nhập");
     } finally {
       setIsLoading(false);
     }

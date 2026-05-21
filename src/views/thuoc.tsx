@@ -3,6 +3,9 @@ import { useState, useEffect } from "react";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
+import ConfirmBox from "../components/common/confirmBox";
+import EditBtn from "../components/common/editBtn";
+import DeleteBtn from "../components/common/deleteBtn";
 import api from "../services/api";
 import { showSuccess,showError } from "../utils/notify";
 
@@ -12,6 +15,7 @@ export default function ThuocView() {
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDelete, setIsDelete] = useState(null);
   const [tatCaThuoc, setTatCaThuoc] = useState([]);
   const authStore = useAuthStore();
 
@@ -101,21 +105,22 @@ export default function ThuocView() {
       getData();
     } catch (error) {
       console.error("Lỗi lưu thuốc:", error);
-      showError("Lỗi khi lưu dữ liệu");
+      showError(error.message || "Lỗi khi lưu dữ liệu");
     } finally {
       setIsSaving(false);
     }
   }
 
   async function handleDelete(mathuoc: string) {
-    if (!window.confirm("Bạn chắc chắn muốn xóa thuốc này?")) return;
     try {
       await api.delete(`/thuoc/${mathuoc}`);
       getData();
       showSuccess("Đã xóa thuốc!");
     } catch (error) {
       console.error("Lỗi xóa thuốc:", error);
-      showError("Lỗi khi xóa dữ liệu");
+      showError(error.message || "Lỗi khi xóa dữ liệu");
+    } finally {
+      setIsDelete(null);
     }
   }
 
@@ -152,21 +157,11 @@ export default function ThuocView() {
             {thuoc.trangthai === 1 ? "Kinh doanh" : "Ngừng KD"}
           </span>
         </td>
-        <td className='p-4'>
+        <td className='p-4 flex items-center gap-2'>
           {authStore.isAdmin() && (
             <>
-              <button
-                onClick={() => openEditModal(thuoc)}
-                className='text-blue-600 hover:underline font-medium mr-3'
-              >
-                Sửa
-              </button>
-              <button
-                onClick={() => handleDelete(thuoc.mathuoc)}
-                className='text-red-600 hover:underline font-medium'
-              >
-                Xóa
-              </button>
+              <EditBtn func={() => openEditModal(thuoc)} />
+              <DeleteBtn func={() => setIsDelete(thuoc.mathuoc)} />
             </>
           )}
         </td>
@@ -379,6 +374,15 @@ export default function ThuocView() {
             </div>
           </div>
         )}
+
+        {isDelete && (
+          <ConfirmBox
+            message='Bạn có chắc chắn muốn xóa thuốc này?'
+            onConfirm={() => handleDelete(isDelete)}
+            onCancel={() => setIsDelete(null)}
+          />
+        )}
+
       </div>
     </>
   );

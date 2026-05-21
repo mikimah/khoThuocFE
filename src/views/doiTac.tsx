@@ -5,7 +5,10 @@ import { formatCurrency } from "../utils/customFunction";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
-import { showSuccess,showError } from "../utils/notify";
+import EditBtn from "../components/common/editBtn";
+import DeleteBtn from "../components/common/deleteBtn";
+import ConfirmBox from "../components/common/confirmBox";
+import { showSuccess, showError } from "../utils/notify";
 
 export default function DoiTacView() {
   const authStore = useAuthStore();
@@ -18,6 +21,7 @@ export default function DoiTacView() {
   const [showModal, setShowModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isDelete, setIsDelete] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const defaultForm = {
@@ -150,18 +154,8 @@ export default function DoiTacView() {
           <div className='flex gap-3'>
             {authStore.isAdmin() && (
               <>
-                <button
-                  onClick={() => openEditModal(dt)}
-                  className='text-blue-600 hover:underline font-medium text-sm'
-                >
-                  Sửa
-                </button>
-                <button
-                  onClick={() => handleDelete(dt.madoitac)}
-                  className='text-red-600 hover:underline font-medium text-sm'
-                >
-                  Xóa
-                </button>
+                <EditBtn func={() => openEditModal(dt)} />
+                <DeleteBtn func={() => setIsDelete(dt.madoitac)} />
               </>
             )}
           </div>
@@ -245,7 +239,9 @@ export default function DoiTacView() {
     // KIỂM TRA ĐỊNH DẠNG MÃ SỐ THUẾ
     const mst = (formData.masothue || "").trim();
     if (mst && !/^(\d{10}|\d{13})$/.test(mst)) {
-      showError("LỖI: Mã số thuế phải bao gồm ĐÚNG 10 hoặc 13 CHỮ SỐ liên tiếp!");
+      showError(
+        "LỖI: Mã số thuế phải bao gồm ĐÚNG 10 hoặc 13 CHỮ SỐ liên tiếp!",
+      );
       return;
     }
 
@@ -280,19 +276,15 @@ export default function DoiTacView() {
       return;
     }
 
-    if (
-      window.confirm(
-        "Bạn có chắc muốn xóa đối tác này? Toàn bộ đơn hàng liên quan có thể bị ảnh hưởng!",
-      )
-    ) {
-      try {
-        await api.delete(`/doitac/${id}`);
-        getData();
-        showSuccess("Đã xóa đối tác!");
-      } catch (error: any) {
-        console.log(error.message || "Xóa thất bại");
-        showError("Xóa thất bại");
-      }
+    try {
+      await api.delete(`/doitac/${id}`);
+      getData();
+      showSuccess("Đã xóa đối tác!");
+    } catch (error: any) {
+      console.log(error.message || "Xóa thất bại");
+      showError(error.message || "Xóa thất bại");
+    } finally {
+      setIsDelete(null);
     }
   };
 
@@ -336,7 +328,7 @@ export default function DoiTacView() {
               : " text-gray-500 hover:text-gray-700 hover:scale-[1.05]"
           }`}
         >
-           Nhà Cung Cấp
+          Nhà Cung Cấp
         </button>
         <button
           onClick={() => setActiveTab("KhachHang")}
@@ -346,7 +338,7 @@ export default function DoiTacView() {
               : "text-gray-500 hover:text-gray-700 hover:scale-[1.05]"
           }`}
         >
-           Khách Hàng
+          Khách Hàng
         </button>
       </div>
 
@@ -538,6 +530,14 @@ export default function DoiTacView() {
             </form>
           </div>
         </div>
+      )}
+
+      {isDelete && (
+        <ConfirmBox
+          message='Bạn có chắc chắn muốn xóa đối tác này?'
+          onConfirm={() => handleDelete(isDelete)}
+          onCancel={() => setIsDelete(null)}
+        />
       )}
     </div>
   );

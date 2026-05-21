@@ -1,6 +1,12 @@
 import { Search } from "lucide-react";
 
-export default function SearchInput({ searchValue, func, placeholder }) {
+interface SearchInputProps {
+  searchValue: string;
+  func: (value: string) => void;
+  placeholder: string;
+}
+
+export default function SearchInput({ searchValue, func, placeholder }: SearchInputProps) {
   return (
     <div className='relative'>
       <input

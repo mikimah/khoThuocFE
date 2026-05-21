@@ -116,7 +116,7 @@ export default function LoThuocView() {
         <td className='p-4 text-center'>
           <button
             onClick={() => openEditModal(lo)}
-            className='text-blue-600 font-bold hover:underline text-sm'
+            className='text-white bg-gray-400 hover:bg-blue-500 transition-[.25s] rounded p-2 font-bold hover:cursor-pointer text-sm'
           >
             Cất hàng
           </button>

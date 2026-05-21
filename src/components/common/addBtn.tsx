@@ -1,4 +1,10 @@
-export default function AddBtn({ func, placeholder }) {
+interface AddBtnProps {
+  func: () => void;
+  placeholder: string;
+}
+
+
+export default function AddBtn({ func, placeholder }: AddBtnProps) {
   return (
     <button
       onClick={func}
