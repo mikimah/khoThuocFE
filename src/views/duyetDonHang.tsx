@@ -106,7 +106,7 @@ export default function DuyetDonHangView() {
           <td className='p-4 flex gap-2 justify-center'>
             <button
               onClick={() => openDetail(item)}
-              className='px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-bold rounded hover:bg-gray-200 transition'
+              className='hover:cursor-pointer px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-bold rounded hover:bg-gray-200 transition'
             >
               Chi tiết
             </button>
@@ -115,13 +115,13 @@ export default function DuyetDonHangView() {
               <>
                 <button
                   onClick={() => handleDuyetKiemKe(item.madonhang)}
-                  className='px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded shadow-sm transition'
+                  className='hover:cursor-pointer px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded shadow-sm transition'
                 >
                   Duyệt
                 </button>
                 <button
                   onClick={() => handleHuyKiemKe(item.madonhang)}
-                  className='px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm rounded transition'
+                  className='hover:cursor-pointer px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm rounded transition'
                 >
                   Từ chối
                 </button>
@@ -132,13 +132,13 @@ export default function DuyetDonHangView() {
                   onClick={() =>
                     handleDuyetDonHang(item.madonhang, item.loaidonhang)
                   }
-                  className='px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded shadow-sm transition'
+                  className='hover:cursor-pointer px-4 py-1.5 bg-green-500 hover:bg-green-600 text-white font-bold text-sm rounded shadow-sm transition'
                 >
                   Duyệt
                 </button>
                 <button
                   onClick={() => handleHuyDonHang(item.madonhang)}
-                  className='px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm rounded transition'
+                  className='hover:cursor-pointer px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-sm rounded transition'
                 >
                   Từ chối
                 </button>
@@ -185,7 +185,7 @@ export default function DuyetDonHangView() {
         "Lỗi khi duyệt đơn: " +
           (error.response?.data?.message || error.message || "Lỗi hệ thống"),
       );
-      showError("Lỗi khi duyệt đơn");
+      showError(error.message || "Lỗi khi duyệt đơn");
     }
   };
 
@@ -202,7 +202,7 @@ export default function DuyetDonHangView() {
       alert(
         "Lỗi khi hủy đơn: " + (error.response?.data?.message || "Lỗi hệ thống"),
       );
-      showError("Lỗi khi hủy đơn");
+      showError(error.message || "Lỗi khi hủy đơn");
     }
   };
 
@@ -226,7 +226,7 @@ export default function DuyetDonHangView() {
         "Lỗi khi duyệt phiếu kiểm kê: " +
           (error.response?.data?.message || "Lỗi hệ thống"),
       );
-      showError("Lỗi khi duyệt phiếu kiểm kê");
+      showError(error.message || "Lỗi khi duyệt phiếu kiểm kê");
     }
   };
 
@@ -248,7 +248,7 @@ export default function DuyetDonHangView() {
         "Lỗi khi từ chối phiếu kiểm kê: " +
           (error.response?.data?.message || "Lỗi hệ thống"),
       );
-      showError("Lỗi khi từ chối phiếu kiểm kê");
+      showError(error.message || "Lỗi khi từ chối phiếu kiểm kê");
     }
   };
 
@@ -286,7 +286,7 @@ export default function DuyetDonHangView() {
         "Lỗi khi tải chi tiết: " +
           (error.response?.data?.message || error.message || "Lỗi hệ thống"),
       );
-      showError("Lỗi khi tải chi tiết");
+      showError(error.message || "Lỗi khi tải chi tiết");
     } finally {
       setIsLoadingDetail(false);
     }

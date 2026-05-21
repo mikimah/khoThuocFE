@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // Đảm bảo đúng port Backend của bạn
+  baseURL: import.meta.env.VITE_BACKEND_API || 'http://localhost:5000/api', // Đảm bảo đúng port Backend của bạn
   headers: {
     'Content-Type': 'application/json'
   }

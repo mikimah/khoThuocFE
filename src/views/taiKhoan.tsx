@@ -4,6 +4,9 @@ import { useAuthStore } from "../context/useAuthStore";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
+import EditBtn from "../components/common/editBtn";
+import DeleteBtn from "../components/common/deleteBtn";
+import ConfirmBox from "../components/common/confirmBox";
 import { showSuccess,showError } from "../utils/notify";
 
 export default function TaiKhoanView() {
@@ -15,6 +18,7 @@ export default function TaiKhoanView() {
   // --- MODAL CẤP MỚI ---
   const [showModal, setShowModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDelete, setIsDelete] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     tendangnhap: "",
     matkhau: "",
@@ -62,18 +66,8 @@ export default function TaiKhoanView() {
             </span>
           </td>
           <td className='p-4 flex gap-3'>
-            <button
-              onClick={() => openPasswordModal(tk)}
-              className='text-blue-600 hover:underline font-medium text-sm'
-            >
-              Đổi Pass
-            </button>
-            <button
-              onClick={() => handleDelete(tk.mataikhoan)}
-              className='text-red-600 hover:underline font-medium text-sm'
-            >
-              Xóa
-            </button>
+            <EditBtn func={() => openPasswordModal(tk)} />
+            <DeleteBtn func={() => setIsDelete(tk.mataikhoan)} />
           </td>
         </tr>
       ))
@@ -105,7 +99,6 @@ export default function TaiKhoanView() {
     setIsSaving(true);
     try {
       await api.post("/taikhoan", formData);
-      alert("Cấp tài khoản thành công!");
       showSuccess("Cấp tài khoản thành công!");
       setShowModal(false);
       setFormData({
@@ -115,7 +108,8 @@ export default function TaiKhoanView() {
       });
       getData();
     } catch (error: any) {
-      alert(error.message || "Lỗi hệ thống");
+      console.error("Lỗi tạo tài khoản:", error);
+      showError(error.message || "Lỗi hệ thống");
     } finally {
       setIsSaving(false);
     }
@@ -156,22 +150,20 @@ export default function TaiKhoanView() {
   // --- HÀM XÓA TÀI KHOẢN ---
   const handleDelete = async (id: number) => {
     if (id === authStore.user?.mataikhoan) {
-      alert("Cảnh báo: Bạn không thể tự xóa tài khoản mà mình đang đăng nhập!");
+      showError("Cảnh báo: Bạn không thể tự xóa tài khoản mà mình đang đăng nhập!");
+      setIsDelete(null);
       return;
     }
 
     if (id === 0 || id === 1) {
-      alert(
+      showError(
         "Cảnh báo: Tài khoản Quản trị viên gốc được hệ thống bảo vệ, không thể xóa!",
       );
+      setIsDelete(null);
       return;
     }
 
-    if (
-      window.confirm(
-        "Bạn có chắc chắn muốn xóa tài khoản này? Hành động này không thể hoàn tác!",
-      )
-    ) {
+
       try {
         await api.delete(`/taikhoan/${id}`);
         showSuccess("Xóa tài khoản thành công");
@@ -179,8 +171,10 @@ export default function TaiKhoanView() {
       } catch (error: any) {
         showError("Xóa tài khoản thất bại");
         console.error("Lỗi xóa tài khoản:", error);
+      }finally {
+        setIsDelete(null);
       }
-    }
+    
   };
 
   // --- LOAD DATA ON MOUNT ---
@@ -387,6 +381,16 @@ export default function TaiKhoanView() {
             </form>
           </div>
         </div>
+      )}
+
+      {isDelete && (
+        <ConfirmBox
+          message={`Bạn có chắc chắn muốn xóa tài khoản ${isDelete}?`}
+          onCancel={() => setIsDelete(null)}
+          onConfirm={() => {
+              handleDelete(isDelete);
+          }}
+        />
       )}
     </div>
   );

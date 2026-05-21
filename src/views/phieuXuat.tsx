@@ -534,7 +534,7 @@ export default function PhieuXuatView() {
       closeForm();
       getData();
     } catch (error: any) {
-      showError("Có lỗi xảy ra khi lưu đơn hàng");
+      showError(error.message || "Có lỗi xảy ra khi lưu đơn hàng");
       console.error("Lỗi khi lưu:", error);
     } finally {
       setIsLoading(false);
@@ -588,7 +588,7 @@ export default function PhieuXuatView() {
     const amount = Math.round(khachCanTraModal || 0);
     const addInfo = `Thanh toan don hang XUAT${selectedDonHang.madonhang}`;
     const base =
-      "https://api.vietqr.io/image/970436-1042328265-wp5fFpl.jpg?accountName=TRAN%20TUAN%20DAT";
+      import.meta.env.VITE_VIETQR || "https://api.vietqr.io/image/970436-1042328265-wp5fFpl.jpg?accountName=TRAN%20TUAN%20DAT";
     return `${base}&amount=${amount}&addInfo=${encodeURIComponent(addInfo)}`;
   }, [selectedDonHang, khachCanTraModal]);
 

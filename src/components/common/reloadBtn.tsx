@@ -1,6 +1,10 @@
 import { RefreshCcw } from "lucide-react"
 
-export default function ReloadBtn({func}) {
+interface ReloadBtnProps {
+  func: () => void;
+}
+
+export default function ReloadBtn({ func }: ReloadBtnProps) {
     return (
         <button
             onClick={func}
