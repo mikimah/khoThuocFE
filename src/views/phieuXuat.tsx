@@ -69,15 +69,18 @@ export default function PhieuXuatView() {
       <tr key={index} className='border-b border-dashed hover:bg-gray-50'>
         <td className='p-2 align-top'>
           <select
-            value={item.mathuoc}
+            value={item.mathuoc || ""}
             onChange={(e) => {
+              const selectedId = e.target.value;
               const updatedData = [...chiTietData];
               updatedData[index] = {
                 ...item,
-                mathuoc: e.target.value,
+                mathuoc: selectedId,
+                malo: "",
               };
               setChiTietData(updatedData);
-              handleChonThuoc(updatedData[index]);
+              console.log("Selected item:", updatedData[index]);
+              //handleChonThuoc(updatedData[index]);
             }}
             className='w-full px-2 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
             required
@@ -94,7 +97,7 @@ export default function PhieuXuatView() {
         </td>
         <td className='p-2 align-top'>
           <select
-            value={item.malo}
+            value={item.malo || ""}
             onChange={(e) => {
               const updatedData = [...chiTietData];
               updatedData[index] = {
@@ -102,7 +105,7 @@ export default function PhieuXuatView() {
                 malo: e.target.value,
               };
               setChiTietData(updatedData);
-              handleChonLoHoacDonVi(updatedData[index]);
+              //handleChonLoHoacDonVi(updatedData[index]);
             }}
             className='w-full px-2 py-2 border border-gray-300 rounded-md text-xs outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
             disabled={!item.mathuoc}
@@ -249,16 +252,21 @@ export default function PhieuXuatView() {
     setChiTietData(chiTietData.filter((_, i) => i !== index));
   };
 
-  const getDonViTheoThuoc = (mathuoc: any) =>
-    danhSachDonVi.filter((dv: any) => dv.mathuoc === mathuoc);
+ const getDonViTheoThuoc = (mathuoc: any) => {
+    if (!mathuoc) return [];
+    // 🛠️ Ép cả 2 về String để đảm bảo so sánh chính xác bất kể API trả về số hay chuỗi
+    return danhSachDonVi.filter((dv: any) => String(dv.mathuoc) === String(mathuoc));
+  };
 
-  const getLoTheoThuoc = (mathuoc: any) =>
-    danhSachLo.filter(
+  const getLoTheoThuoc = (mathuoc: any) => {
+    if (!mathuoc) return [];
+    return danhSachLo.filter(
       (lo: any) =>
-        lo.mathuoc === mathuoc &&
+        String(lo.mathuoc) === String(mathuoc) &&
         lo.tonkhadung > 0 &&
         String(lo.trangthai || "").toLowerCase() === "sansangban",
     );
+  };
 
   const danhSachThuocCoTheXuat = useMemo(() => {
     const availableSet = new Set(
