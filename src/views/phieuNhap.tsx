@@ -4,7 +4,7 @@ import { useAuthStore } from "../context/useAuthStore";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
-import { showSuccess,showError } from "../utils/notify";
+import { showSuccess, showError } from "../utils/notify";
 
 export default function PhieuNhapView() {
   const authStore = useAuthStore();
@@ -74,6 +74,7 @@ export default function PhieuNhapView() {
   };
 
   function renderItems(items: any[]) {
+    console.log("Rendering items:", items);
     return items.map((item, index) => (
       <tr
         key={index}
@@ -81,15 +82,17 @@ export default function PhieuNhapView() {
       >
         <td className='p-2 align-top'>
           <select
-            value={item.mathuoc}
+            value={item.mathuoc || ""}
             onChange={(e) => {
+              const selectedId = e.target.value;
               const updatedData = [...chiTietData];
               updatedData[index] = {
                 ...item,
-                mathuoc: e.target.value,
+                mathuoc: selectedId,
+                madonvitinh: "",
               };
               setChiTietData(updatedData);
-              handleChonThuoc(updatedData[index], index);
+              //handleChonThuoc(updatedData[index], index);
             }}
             className='w-full px-2 py-2 border border-gray-300 rounded-md text-sm bg-white outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
             required
@@ -106,7 +109,7 @@ export default function PhieuNhapView() {
         </td>
         <td className='p-2 align-top'>
           <select
-            value={item.madonvitinh}
+            value={item.madonvitinh || ""}
             onChange={(e) => {
               const updatedData = [...chiTietData];
               updatedData[index] = {
@@ -334,8 +337,13 @@ export default function PhieuNhapView() {
     setChiTietData(chiTietData.filter((_, i) => i !== index));
   };
 
-  const getDonViTheoThuoc = (mathuoc: any) =>
-    danhSachDonVi.filter((dv: any) => dv.mathuoc === mathuoc);
+  const getDonViTheoThuoc = (mathuoc: any) => {
+    if (!mathuoc) return [];
+    // 🛠️ Ép cả 2 về String để đảm bảo so sánh chính xác bất kể API trả về số hay chuỗi
+    return danhSachDonVi.filter(
+      (dv: any) => String(dv.mathuoc) === String(mathuoc),
+    );
+  };
 
   const handleChonThuoc = (item: any, index: number) => {
     const updatedData = [...chiTietData];
@@ -400,12 +408,16 @@ export default function PhieuNhapView() {
           !item.ngaysanxuat,
       )
     ) {
-      showError("Vui lòng nhập đủ Đơn vị, Số Lô, Ngày sản xuất và Hạn sử dụng!");
+      showError(
+        "Vui lòng nhập đủ Đơn vị, Số Lô, Ngày sản xuất và Hạn sử dụng!",
+      );
       return;
     }
 
     if (chiTietData.some((item) => item.soluongthucte > item.soluongyeucau)) {
-      showError("Lỗi: Tồn tại mặt hàng có số lượng thực nhận lớn hơn chứng từ!");
+      showError(
+        "Lỗi: Tồn tại mặt hàng có số lượng thực nhận lớn hơn chứng từ!",
+      );
       return;
     }
 
@@ -492,12 +504,14 @@ export default function PhieuNhapView() {
       );
 
       await Promise.all(promises);
-      showSuccess("Tạo Phiếu Nhập thành công! Đang chờ Admin duyệt để cộng tồn kho.");
+      showSuccess(
+        "Tạo Phiếu Nhập thành công! Đang chờ Admin duyệt để cộng tồn kho.",
+      );
       closeForm();
       getData();
     } catch (error: any) {
       console.error("Lỗi khi lưu:", error);
-      showError( error.message || "Có lỗi xảy ra khi lưu phiếu nhập");
+      showError(error.message || "Có lỗi xảy ra khi lưu phiếu nhập");
     } finally {
       setIsLoading(false);
     }
@@ -746,9 +760,9 @@ export default function PhieuNhapView() {
         <h2 className='text-2xl font-bold text-gray-800'>
           Quản lý Nhập Kho (Mua hàng)
         </h2>
-        <div className="flex gap-4">
-        <AddBtn func={openForm} placeholder='Tạo Phiếu Nhập' />
-        <ReloadBtn func={getData} />
+        <div className='flex gap-4'>
+          <AddBtn func={openForm} placeholder='Tạo Phiếu Nhập' />
+          <ReloadBtn func={getData} />
         </div>
       </div>
 

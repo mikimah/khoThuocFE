@@ -12,6 +12,7 @@ import KiemKeView from '../views/kiemKe';
 import LichSuDonHangView from '../views/lichSuDonHang';
 import TaiKhoanView from '../views/taiKhoan';
 import BaoCaoView from '../views/baoCao';
+import TraCuuDonHangView from '../views/traCuuDonHang';
 import { useAuthStore } from '../context/useAuthStore';
 import PhieuNhapView from '../views/phieuNhap';
 import PhieuXuatView from '../views/phieuXuat';
@@ -45,6 +46,10 @@ const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginWrapper />,
+  },
+  {
+    path: '/tra-cuu',
+    element: <TraCuuDonHangView />,
   },
   {
     path: '/',

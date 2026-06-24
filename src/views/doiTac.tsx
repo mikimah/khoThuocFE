@@ -9,6 +9,7 @@ import EditBtn from "../components/common/editBtn";
 import DeleteBtn from "../components/common/deleteBtn";
 import ConfirmBox from "../components/common/confirmBox";
 import { showSuccess, showError } from "../utils/notify";
+import { Phone,Mail } from "lucide-react";
 
 export default function DoiTacView() {
   const authStore = useAuthStore();
@@ -110,10 +111,10 @@ export default function DoiTacView() {
         </td>
         <td className='p-4 text-sm text-gray-600'>
           <div className='flex items-center gap-1'>
-            <span className='w-4'>📞</span> {dt.sodienthoai || "---"}
+            <Phone className='w-4' /> {dt.sodienthoai || "---"}
           </div>
           <div className='flex items-center gap-1 mt-1'>
-            <span className='w-4'>✉️</span> {dt.email || "---"}
+            <Mail className='w-4' /> {dt.email || "---"}
           </div>
         </td>
         <td className='p-4 text-sm'>
