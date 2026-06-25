@@ -24,6 +24,16 @@ export default function SideBar() {
     authStore.logout();
   };
 
+  // Trích xuất Role an toàn từ dữ liệu User đang đăng nhập
+  const role = authStore.user?.vaitro?.toLowerCase() || "";
+  const isAdmin = role === "admin";
+  const isKho = role === "kho";
+  const isSales = role === "sales";
+
+  // Định nghĩa hàm hỗ trợ set class cho menu
+  const getMenuClass = ({ isActive }: { isActive: boolean }) =>
+    isActive ? `${styles.menuItem} ${styles.menuItemActive}` : styles.menuItem;
+
   return (
     <>
       <div className='flex h-screen bg-gray-100'>
@@ -35,144 +45,57 @@ export default function SideBar() {
           </div>
 
           <nav className='flex-1 p-4 space-y-2 overflow-y-auto'>
-            <NavLink
-              to={"/"}
-              className={({ isActive }) =>
-                isActive
-                  ? `${styles.menuItem} ${styles.menuItemActive}`
-                  : styles.menuItem
-              }
-            >
+            <NavLink to={"/"} className={getMenuClass}>
               <ChartColumnBig className='inline-block w-5 h-5 mr-2' /> Tổng quan
             </NavLink>
-            <NavLink
-              to='/thuoc'
-              className={({ isActive }) =>
-                isActive
-                  ? `${styles.menuItem} ${styles.menuItemActive}`
-                  : styles.menuItem
-              }
-            >
+            <NavLink to='/don-vi-tinh' className={getMenuClass}>
+                  <Scale className='inline-block w-5 h-5 mr-2' /> Đơn vị tính
+            </NavLink>
+            <NavLink to='/thuoc' className={getMenuClass}>
               <Pill className='inline-block w-5 h-5 mr-2' /> Danh mục Thuốc
             </NavLink>
-            <NavLink
-              to='/don-vi-tinh'
-              className={({ isActive }) =>
-                isActive
-                  ? `${styles.menuItem} ${styles.menuItemActive}`
-                  : styles.menuItem
-              }
-            >
-              <Scale className='inline-block w-5 h-5 mr-2' /> Đơn vị tính
-            </NavLink>
-            <NavLink
-              to='/lo-thuoc'
-              className={({ isActive }) =>
-                isActive
-                  ? `${styles.menuItem} ${styles.menuItemActive}`
-                  : styles.menuItem
-              }
-            >
-              <Boxes className='inline-block w-5 h-5 mr-2' /> Quản lý Lô
-            </NavLink>
-            <NavLink
-              to='/doi-tac'
-              className={({ isActive }) =>
-                isActive
-                  ? `${styles.menuItem} ${styles.menuItemActive}`
-                  : styles.menuItem
-              }
-            >
+            <NavLink to='/doi-tac' className={getMenuClass}>
               <Handshake className='inline-block w-5 h-5 mr-2' /> Đối tác
             </NavLink>
 
-            {!authStore.isAdmin() && (
-              <NavLink
-                to='/nhap-kho'
-                className={({ isActive }) =>
-                  isActive
-                    ? `${styles.menuItem} ${styles.menuItemActive}`
-                    : styles.menuItem
-                }
-              >
-                <Box className='inline-block w-5 h-5 mr-2' /> Nhập kho
-              </NavLink>
+            {(isAdmin || isKho) && (
+              <>
+
+                <NavLink to='/lo-thuoc' className={getMenuClass}>
+                  <Boxes className='inline-block w-5 h-5 mr-2' /> Quản lý Lô
+                </NavLink>
+                <NavLink to='/nhap-kho' className={getMenuClass}>
+                  <Box className='inline-block w-5 h-5 mr-2' /> Nhập kho
+                </NavLink>
+                <NavLink to='/kiem-ke' className={getMenuClass}>
+                  <Clipboard className='inline-block w-5 h-5 mr-2' /> Kiểm kê
+                </NavLink>
+              </>
             )}
-            {!authStore.isAdmin() && (
-              <NavLink
-                to='/xuat-kho'
-                className={({ isActive }) =>
-                  isActive
-                    ? `${styles.menuItem} ${styles.menuItemActive}`
-                    : styles.menuItem
-                }
-              >
+
+            {/* PHÂN HỆ SALES: Chỉ Admin và Nhân viên Sales được thấy */}
+            {(isAdmin || isSales) && (
+              <NavLink to='/xuat-kho' className={getMenuClass}>
                 <Truck className='inline-block w-5 h-5 mr-2' /> Xuất kho
               </NavLink>
             )}
 
-            {authStore.isAdmin() && (
-              <NavLink
-                to='/duyet-don'
-                className={({ isActive }) =>
-                  isActive
-                    ? `${styles.menuItem} ${styles.menuItemActive}`
-                    : styles.menuItem
-                }
-              >
-                <CircleCheck className='inline-block w-5 h-5 mr-2' /> Duyệt đơn
-                hàng
-              </NavLink>
-            )}
-
-            <NavLink
-              to='/kiem-ke'
-              className={({ isActive }) =>
-                isActive
-                  ? `${styles.menuItem} ${styles.menuItemActive}`
-                  : styles.menuItem
-              }
-            >
-              <Clipboard className='inline-block w-5 h-5 mr-2' /> Kiểm kê
-            </NavLink>
-
-            {authStore.isAdmin() && (
-              <NavLink
-                to='/lich-su-don-hang'
-                className={({ isActive }) =>
-                  isActive
-                    ? `${styles.menuItem} ${styles.menuItemActive}`
-                    : styles.menuItem
-                }
-              >
-                <ScrollText className='inline-block w-5 h-5 mr-2' /> Lịch sử
-                giao dịch
-              </NavLink>
-            )}
-            {authStore.isAdmin() && (
-              <NavLink
-                to='/tai-khoan'
-                className={({ isActive }) =>
-                  isActive
-                    ? `${styles.menuItem} ${styles.menuItemActive}`
-                    : styles.menuItem
-                }
-              >
-                <Users className='inline-block w-5 h-5 mr-2' /> Tài khoản
-              </NavLink>
-            )}
-            {authStore.isAdmin() && (
-              <NavLink
-                to='/bao-cao'
-                className={({ isActive }) =>
-                  isActive
-                    ? `${styles.menuItem} ${styles.menuItemActive}`
-                    : styles.menuItem
-                }
-              >
-                <ChartNoAxesCombined className='inline-block w-5 h-5 mr-2' />{" "}
-                Báo cáo Doanh thu
-              </NavLink>
+            {/* PHÂN HỆ QUẢN TRỊ CAO CẤP: Chỉ Admin được thấy */}
+            {isAdmin && (
+              <>
+                <NavLink to='/duyet-don' className={getMenuClass}>
+                  <CircleCheck className='inline-block w-5 h-5 mr-2' /> Duyệt đơn hàng
+                </NavLink>
+                <NavLink to='/lich-su-don-hang' className={getMenuClass}>
+                  <ScrollText className='inline-block w-5 h-5 mr-2' /> Lịch sử giao dịch
+                </NavLink>
+                <NavLink to='/tai-khoan' className={getMenuClass}>
+                  <Users className='inline-block w-5 h-5 mr-2' /> Tài khoản
+                </NavLink>
+                <NavLink to='/bao-cao' className={getMenuClass}>
+                  <ChartNoAxesCombined className='inline-block w-5 h-5 mr-2' /> Báo cáo Doanh thu
+                </NavLink>
+              </>
             )}
           </nav>
         </aside>
@@ -192,8 +115,9 @@ export default function SideBar() {
                   <span className='text-sm font-bold text-gray-700 leading-tight'>
                     {authStore.user?.tendangnhap || "Người dùng"}
                   </span>
+                  {/* Hiển thị chính xác chức danh của 3 nhóm */}
                   <span className='text-[10px] text-gray-500 uppercase font-bold'>
-                    {authStore.isAdmin() ? "Quản trị viên" : "Nhân viên"}
+                    {isAdmin ? "Quản trị viên" : isKho ? "Nhân viên Kho" : "Nhân viên Sales"}
                   </span>
                 </div>
               </div>
@@ -207,7 +131,7 @@ export default function SideBar() {
             </div>
           </header>
 
-          <main className='flex-1 overflow-x-hidden overflow-y-auto p-6'>
+          <main className='flex-1 overflow-x-hidden overflow-y-auto p-6 bg-gray-50'>
             <Outlet />
           </main>
         </div>

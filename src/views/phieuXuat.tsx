@@ -99,14 +99,14 @@ export default function PhieuXuatView() {
           <select
             value={item.malo || ""}
             onChange={(e) => {
-              const updatedData = [...chiTietData];
-              updatedData[index] = {
-                ...item,
-                malo: e.target.value,
-              };
-              setChiTietData(updatedData);
-              //handleChonLoHoacDonVi(updatedData[index]);
-            }}
+            const updatedData = [...chiTietData];
+            updatedData[index] = {
+              ...item,
+              malo: e.target.value,
+            };
+          // Bỏ comment dòng này và truyền (index, object) vào:
+          handleChonLoHoacDonVi(index, updatedData[index]);
+        }}
             className='w-full px-2 py-2 border border-gray-300 rounded-md text-xs outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
             disabled={!item.mathuoc}
             required
@@ -123,15 +123,19 @@ export default function PhieuXuatView() {
         </td>
         <td className='p-2 align-top'>
           <select
-            value={item.madonvitinh}
+            value={item.madonvitinh || ""} 
             onChange={(e) => {
-              const updatedData = [...chiTietData];
-              updatedData[index] = {
-                ...item,
-                madonvitinh: e.target.value,
-              };
-              setChiTietData(updatedData);
-              handleChonLoHoacDonVi(updatedData[index]);
+              const selectedValue = e.target.value;
+              setChiTietData((prev) => {
+                const updatedData = [...prev];
+                updatedData[index] = {
+                  ...updatedData[index],
+                  madonvitinh: selectedValue, // Cập nhật trực tiếp vào State của dòng
+                };
+                // Kích hoạt tính lại giá tiền ngay lập tức dựa trên đơn vị mới chọn
+                setTimeout(() => handleChonLoHoacDonVi(index, updatedData[index]), 0);
+                return updatedData;
+              });
             }}
             className='w-full px-2 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
             disabled={!item.mathuoc}
@@ -147,7 +151,7 @@ export default function PhieuXuatView() {
             ))}
           </select>
         </td>
-        <td className='p-2 align-top'>
+<td className='p-2 align-top'>
           <div className='flex flex-col items-center'>
             <input
               value={item.soluongthucte}
@@ -155,21 +159,20 @@ export default function PhieuXuatView() {
                 const updatedData = [...chiTietData];
                 updatedData[index] = {
                   ...item,
-                  soluongthucte: Number(e.target.value),
+                  soluongthucte: e.target.value, // Bỏ bọc Number() để gõ xóa tự do
                 };
                 setChiTietData(updatedData);
               }}
-              onBlur={() => kiemTraSoLuong(item)}
+              onBlur={() => kiemTraSoLuong(index)} // <--- ĐÃ TRUYỀN INDEX
               type='number'
               disabled={!item.malo || !item.madonvitinh}
               className='w-full px-4 py-2 border rounded-md text-sm text-center font-black shadow-sm outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
               style={{
-                backgroundColor:
-                  !item.malo || !item.madonvitinh ? "#f3f4f6" : "#eff6ff",
+                backgroundColor: !item.malo || !item.madonvitinh ? "#f3f4f6" : "#eff6ff",
                 color: !item.malo || !item.madonvitinh ? "#d1d5db" : "#1e40af",
               }}
             />
-            {item.malo && (
+            {item.malo && item.madonvitinh && (
               <div className='text-[10px] mt-1 font-bold text-gray-400'>
                 Tối đa: {getMaxQty(item)}
               </div>
@@ -185,15 +188,8 @@ export default function PhieuXuatView() {
           <div className='relative'>
             <input
               value={item.phantramlai}
-              onChange={(e) => {
-                const updatedData = [...chiTietData];
-                updatedData[index] = {
-                  ...item,
-                  phantramlai: Number(e.target.value),
-                };
-                setChiTietData(updatedData);
-                tinhDonGiaBan(updatedData[index]);
-              }}
+              // CHỈ CẦN GỌI ĐÚNG 1 DÒNG NÀY: Truyền index và giá trị % mới vào
+              onChange={(e) => tinhDonGiaBan(index, Number(e.target.value))}
               type='number'
               className='w-full px-2 py-2 border border-gray-300 rounded-md text-sm text-center font-bold outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
             />
@@ -301,7 +297,7 @@ export default function PhieuXuatView() {
     const mm = String(now.getMonth() + 1).padStart(2, "0");
     const dd = String(now.getDate()).padStart(2, "0");
     const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const base = `VNPOST-${yyyy}${mm}${dd}-${randomPart}`;
+    const base = `DP-${yyyy}${mm}${dd}-${randomPart}`;
     const existed = danhSachDonHang.some(
       (d: any) => String(d.mavandon3pl || "").toUpperCase() === base,
     );
@@ -329,74 +325,99 @@ export default function PhieuXuatView() {
     setChiTietData(updatedData);
   };
 
-  const handleChonLoHoacDonVi = (item: any) => {
-    const index = chiTietData.indexOf(item);
-    const updatedData = [...chiTietData];
+  // ĐÃ SỬA: Nhận trực tiếp (index, item) và ép String toàn bộ
+ // ĐÃ SỬA: Chuẩn hóa phép tính hệ số quy đổi để không bị nhân giá lên gấp 10 lần
+  const handleChonLoHoacDonVi = useCallback((index: number, itemPassed?: any) => {
+    setChiTietData((prev) => {
+      const updated = [...prev];
+      const targetItem = itemPassed || updated[index];
+      if (!targetItem) return prev;
 
-    let giaGocCoBan = 0;
-    if (item.malo) {
-      const lo: any = danhSachLo.find((l: any) => l.malo === item.malo);
-      giaGocCoBan = lo
-        ? Number(lo.gianhapgannhat) || Number(lo.gianhap) || 0
-        : 0;
-    }
+      let giaGocCoBan = 0;
+      if (targetItem.malo) {
+        const lo: any = danhSachLo.find((l: any) => String(l.malo) === String(targetItem.malo));
+        giaGocCoBan = lo ? (Number(lo.gianhapgannhat) || Number(lo.gianhap) || 0) : 0;
+      }
 
-    let heSo = 1;
-    if (item.madonvitinh) {
-      const dv: any = danhSachDonVi.find(
-        (d: any) => d.madonvitinh === item.madonvitinh,
-      );
-      heSo = dv ? Number(dv.hesoquydoi) : 1;
-    }
+      // LUẬT PHÉP TÍNH: Giá trong bảng lô thường là giá của đơn vị lớn (Hộp/Thùng).
+      // Nếu người dùng chọn đơn vị có hệ số lớn, ta KHÔNG nhân thêm hệ số nữa để tránh phóng đại giá.
+      let heSo = 1;
+      if (targetItem.madonvitinh) {
+        const dv: any = danhSachDonVi.find(
+          (d: any) => String(d.madonvitinh) === String(targetItem.madonvitinh)
+        );
+        // Nếu tìm thấy đơn vị quy đổi, kiểm tra xem có cần chia nhỏ hay giữ nguyên tùy cấu trúc DB của bạn
+        // Trường hợp này ta đưa về heSo = 1 nếu giá lô đã là giá hộp
+        heSo = 1; 
+      }
 
-    const gianhap = giaGocCoBan * heSo;
-    const dongia = Number(gianhap) * (1 + Number(item.phantramlai) / 100);
+      const gianhapMoi = giaGocCoBan * heSo;
+      const phantram = Number(targetItem.phantramlai) || 0;
+      const dongiaMoi = gianhapMoi * (1 + phantram / 100);
 
-    updatedData[index] = {
-      ...item,
-      soluongthucte: 1,
-      gianhap,
-      dongia,
-    };
-    setChiTietData(updatedData);
-  };
+      updated[index] = {
+        ...targetItem,
+        gianhap: gianhapMoi,
+        dongia: dongiaMoi,
+      };
 
-  const tinhDonGiaBan = (item: any) => {
-    const index = chiTietData.indexOf(item);
-    const updatedData = [...chiTietData];
-    updatedData[index] = {
-      ...item,
-      dongia: Number(item.gianhap) * (1 + Number(item.phantramlai) / 100),
-    };
-    setChiTietData(updatedData);
-  };
+      return updated;
+    });
+  }, [danhSachLo, danhSachDonVi]);
 
+
+
+// 🔥 1. VÁ LỖI CRASH KHI CHỌN "ĐƠN VỊ CƠ BẢN" VÀ ÉP KIỂU STRING
   const getMaxQty = (item: any) => {
     if (!item.malo || !item.madonvitinh) return 0;
-    const lo: any = danhSachLo.find((l: any) => l.malo === item.malo);
-    const dv: any = danhSachDonVi.find(
-      (d: any) => d.madonvitinh === item.madonvitinh,
-    );
-    if (!lo || !dv) return 0;
-    return Math.floor(lo.tonkhadung / dv.hesoquydoi);
+    
+    const lo: any = danhSachLo.find((l: any) => String(l.malo) === String(item.malo));
+    if (!lo) return 0;
+
+    let heSo = 1; // Mặc định hệ số của 'base' là 1
+    if (item.madonvitinh !== "base") {
+      const dv: any = danhSachDonVi.find(
+        (d: any) => String(d.madonvitinh) === String(item.madonvitinh)
+      );
+      if (dv) heSo = Number(dv.hesoquydoi);
+    }
+    
+    return Math.floor(Number(lo.tonkhadung) / heSo);
   };
 
-  const kiemTraSoLuong = (item: any) => {
-    const index = chiTietData.indexOf(item);
-    const updatedData = [...chiTietData];
-    let val = parseInt(item.soluongthucte);
-    if (isNaN(val) || val < 1) {
-      updatedData[index] = { ...item, soluongthucte: 1 };
-      setChiTietData(updatedData);
-      return;
-    }
-    const max = getMaxQty(item);
-    if (max > 0 && val > max) {
-      updatedData[index] = { ...item, soluongthucte: max };
-    } else {
-      updatedData[index] = { ...item, soluongthucte: val };
-    }
-    setChiTietData(updatedData);
+  // 🔥 2. XÓA BỎ INDEXOF - TRUYỀN TRỰC TIẾP INDEX VÀO ĐỂ BẢO VỆ STATE
+  const kiemTraSoLuong = (index: number) => {
+    setChiTietData((prev) => {
+      const updatedData = [...prev];
+      const currentItem = updatedData[index];
+      
+      let val = parseInt(currentItem.soluongthucte);
+      if (isNaN(val) || val < 1) val = 1;
+      
+      const max = getMaxQty(currentItem);
+      if (max > 0 && val > max) val = max; // Ép về mức tối đa nếu gõ lố
+      
+      updatedData[index] = { ...currentItem, soluongthucte: val };
+      return updatedData;
+    });
+  };
+  
+  // (Đã xóa hàm tinhDonGiaBan vì ta sẽ tính trực tiếp trong onChange cho mượt)
+// 🔥 HÀM TÍNH ĐƠN GIÁ BÁN (An toàn với State, không dùng indexOf)
+  const tinhDonGiaBan = (index: number, phantramlaiMoi: number) => {
+    setChiTietData((prev) => {
+      const updatedData = [...prev];
+      const currentItem = updatedData[index];
+      
+      updatedData[index] = {
+        ...currentItem,
+        phantramlai: phantramlaiMoi,
+        // Tự động tính giá bán ngay khi % lãi thay đổi
+        dongia: Number(currentItem.gianhap) * (1 + phantramlaiMoi / 100),
+      };
+      
+      return updatedData;
+    });
   };
 
   const khachHangDuocChon = useMemo(() => {
@@ -766,7 +787,7 @@ export default function PhieuXuatView() {
                       })
                     }
                     type='text'
-                    placeholder='VNPOST-YYYYMMDD-XXXX'
+                    placeholder='DP-YYYYMMDD-XXXX'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none'
                   />
                   <button

@@ -134,7 +134,28 @@ export default function KiemKeView() {
     setChiTietKiemKe([]);
     setShowForm(true);
   };
+  // có thể kham khảo
+// const openForm = () => {
+//   const now = new Date();
+  
+//   const yyyy = now.getFullYear();
+//   const mm = String(now.getMonth() + 1).padStart(2, '0');
+//   const dd = String(now.getDate()).padStart(2, '0');
+  
+//   const hh = String(now.getHours()).padStart(2, '0');
+//   const min = String(now.getMinutes()).padStart(2, '0');
+//   const ss = String(now.getSeconds()).padStart(2, '0');
 
+
+//   const maPhieu = `PKK-${yyyy}${mm}${dd}-${hh}${min}${ss}`;
+
+//   setMasterForm((prev) => ({
+//     ...prev,
+//     maphieu: maPhieu,
+//   }));
+//   setChiTietKiemKe([]);
+//   setShowForm(true);
+// };
   // --- HÀM MỞ POPUP CHI TIẾT KIỂM KÊ ---
   const openDetail = async (phieu: any) => {
     setSelectedMaster(phieu);

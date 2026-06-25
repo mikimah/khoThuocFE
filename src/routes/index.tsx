@@ -1,8 +1,9 @@
-import { createBrowserRouter,Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LoginView from '../views/login';
 import SideBar from '../components/layout/sideBar';
 import DashboardAdminView from '../views/dashboardAdmin';
-import DashboardNhanVienView from '../views/dashboardNhanVien';
+import DashboardKhoView from '../views/dashboardKho';       // ĐÃ THÊM
+import DashboardSalesView from '../views/dashboardSales';   // ĐÃ SỬA
 import ThuocView from '../views/thuoc';
 import DonViTinhView from '../views/donViTinh';
 import LoThuocView from '../views/loThuoc';
@@ -17,11 +18,14 @@ import { useAuthStore } from '../context/useAuthStore';
 import PhieuNhapView from '../views/phieuNhap';
 import PhieuXuatView from '../views/phieuXuat';
 
-
-
+// --- ĐÃ NÂNG CẤP BỘ ĐỊNH TUYẾN 3 VAI TRÒ ---
 function DashboardWrapper() {
   const authStore = useAuthStore();
-  return authStore.isAdmin() ? <DashboardAdminView /> : <DashboardNhanVienView />;
+  const role = authStore.user?.vaitro?.toLowerCase();
+
+  if (role === 'admin') return <DashboardAdminView />;
+  if (role === 'kho') return <DashboardKhoView />;
+  return <DashboardSalesView />;
 }
 
 function LoginWrapper(){
@@ -29,18 +33,13 @@ function LoginWrapper(){
   return authStore.isAuthenticated() ? <Navigate to="/" replace /> : <LoginView />;
 }
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const authStore = useAuthStore();
-
-  // Nếu chưa đăng nhập, redirect về login
   if (!authStore.isAuthenticated()) {
     return <Navigate to="/login" replace />;
-  } else {
-    return children;
   }
-
+  return <>{children}</>;
 }
-
 
 const router = createBrowserRouter([
   {
@@ -55,47 +54,20 @@ const router = createBrowserRouter([
     path: '/',
     element: <ProtectedRoute><SideBar /></ProtectedRoute>,
     children: [
-      {
-        index: true,
-        element: <DashboardWrapper />,
-      },
-      {
-        path: 'thuoc',
-        element: <ThuocView />,
-      },{
-        path: 'don-vi-tinh',
-        element: <DonViTinhView />,
-      },{
-        path: 'lo-thuoc',
-        element: <LoThuocView />,
-      },{
-        path: 'doi-tac',
-        element: <DoiTacView />,
-      },{
-        path: 'duyet-don',
-        element: <DuyetDonHangView />,
-      },{
-        path: 'kiem-ke',
-        element: <KiemKeView />,
-      },{
-        path: 'lich-su-don-hang',
-        element: <LichSuDonHangView />,
-      },{
-        path: 'tai-khoan',
-        element: <TaiKhoanView />,
-      },{
-        path: 'bao-cao',
-        element: <BaoCaoView />,
-      },{
-        path: 'nhap-kho',
-        element: <PhieuNhapView />,
-      },{
-        path: 'xuat-kho',
-        element: <PhieuXuatView />,
-      }
+      { index: true, element: <DashboardWrapper /> },
+      { path: 'thuoc', element: <ThuocView /> },
+      { path: 'don-vi-tinh', element: <DonViTinhView /> },
+      { path: 'lo-thuoc', element: <LoThuocView /> },
+      { path: 'doi-tac', element: <DoiTacView /> },
+      { path: 'duyet-don', element: <DuyetDonHangView /> },
+      { path: 'kiem-ke', element: <KiemKeView /> },
+      { path: 'lich-su-don-hang', element: <LichSuDonHangView /> },
+      { path: 'tai-khoan', element: <TaiKhoanView /> },
+      { path: 'bao-cao', element: <BaoCaoView /> },
+      { path: 'nhap-kho', element: <PhieuNhapView /> },
+      { path: 'xuat-kho', element: <PhieuXuatView /> }
     ]
   }
 ]);
-
 
 export default router;

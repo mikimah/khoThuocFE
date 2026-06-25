@@ -74,7 +74,6 @@ export default function PhieuNhapView() {
   };
 
   function renderItems(items: any[]) {
-    console.log("Rendering items:", items);
     return items.map((item, index) => (
       <tr
         key={index}
@@ -92,7 +91,6 @@ export default function PhieuNhapView() {
                 madonvitinh: "",
               };
               setChiTietData(updatedData);
-              //handleChonThuoc(updatedData[index], index);
             }}
             className='w-full px-2 py-2 border border-gray-300 rounded-md text-sm bg-white outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
             required
@@ -125,7 +123,7 @@ export default function PhieuNhapView() {
             <option value='' disabled>
               -- ĐV --
             </option>
-            {getDonViTheoThuoc(item.mathuoc).map((dv) => (
+            {getDonViTheoThuoc(item.mathuoc).map((dv: any) => (
               <option key={dv.madonvitinh} value={dv.madonvitinh}>
                 {dv.tendonvi} ( x{dv.hesoquydoi})
               </option>
@@ -133,38 +131,22 @@ export default function PhieuNhapView() {
           </select>
         </td>
         <td className='p-2 align-top flex flex-col gap-1.5'>
-          <div className='relative'>
-            <input
-              value={item.solo}
-              onChange={(e) => {
-                const updatedData = [...chiTietData];
-                updatedData[index] = {
-                  ...item,
-                  solo: e.target.value,
-                };
-                setChiTietData(updatedData);
-              }}
-              type='text'
-              placeholder='Gõ số lô...'
-              className='w-full px-2 py-2 pr-9 border border-gray-300 rounded-md text-xs outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
-              required
-            />
-            <button
-              type='button'
-              title='Tạo mã tự động'
-              onClick={() => {
-                const updatedData = [...chiTietData];
-                updatedData[index] = {
-                  ...item,
-                  solo: generateLotNumber(),
-                };
-                setChiTietData(updatedData);
-              }}
-              className='absolute right-2 top-1/2 -translate-y-1/2 text-xs text-blue-600 hover:text-blue-700 font-bold'
-            >
-              ⚡
-            </button>
-          </div>
+          {/* ĐÃ SỬA: Xóa nút sấm sét tự tạo lô, bắt người dùng phải tự nhập */}
+          <input
+            value={item.solo}
+            onChange={(e) => {
+              const updatedData = [...chiTietData];
+              updatedData[index] = {
+                ...item,
+                solo: e.target.value.toUpperCase(), // Tự động viết hoa số lô cho chuyên nghiệp
+              };
+              setChiTietData(updatedData);
+            }}
+            type='text'
+            placeholder='Nhập đúng số lô trên hộp...'
+            className='w-full px-2 py-2 border border-gray-300 rounded-md text-xs font-bold outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
+            required
+          />
           <div className='flex items-center justify-between'>
             <span className='text-[10px] font-bold text-gray-500 w-10'>
               NSX:
@@ -311,19 +293,14 @@ export default function PhieuNhapView() {
     setSelectedDetails([]);
   };
 
-  const generateLotNumber = () => {
-    const yy = String(new Date().getFullYear()).slice(-2);
-    const randomPart = Math.floor(1000 + Math.random() * 9000);
-    return `LOT-${yy}-${randomPart}`;
-  };
-
+  // ĐÃ SỬA: Hàm themDongChiTiet khởi tạo Số Lô rỗng để ép thủ kho nhập tay
   const themDongChiTiet = () => {
     setChiTietData([
       ...chiTietData,
       {
         mathuoc: "",
         madonvitinh: "",
-        solo: generateLotNumber(),
+        solo: "", 
         hansudung: "",
         ngaysanxuat: "",
         soluongyeucau: 1,
@@ -339,16 +316,9 @@ export default function PhieuNhapView() {
 
   const getDonViTheoThuoc = (mathuoc: any) => {
     if (!mathuoc) return [];
-    // 🛠️ Ép cả 2 về String để đảm bảo so sánh chính xác bất kể API trả về số hay chuỗi
     return danhSachDonVi.filter(
       (dv: any) => String(dv.mathuoc) === String(mathuoc),
     );
-  };
-
-  const handleChonThuoc = (item: any, index: number) => {
-    const updatedData = [...chiTietData];
-    updatedData[index] = { ...item, madonvitinh: "" };
-    setChiTietData(updatedData);
   };
 
   const validateSoLuong = (item: any, index: number) => {
@@ -381,20 +351,17 @@ export default function PhieuNhapView() {
     }));
   }, [tongTienThanhToan]);
 
-  const tienNoNCC = useMemo(() => {
-    return Math.max(0, tongTienThanhToan - Number(masterForm.tiendathanhtoan));
-  }, [tongTienThanhToan, masterForm.tiendathanhtoan]);
-
   const handleSaveDonHang = async () => {
     if (!masterForm.madoitac || chiTietData.length === 0) {
       showError("Vui lòng chọn Nhà cung cấp và thêm mặt hàng!");
       return;
     }
 
+    // ĐÃ SỬA: Chấp nhận chuỗi Hóa đơn điện tử chuẩn (Ví dụ: 1C26TAA-00001234)
     const soHoaDon = (masterForm.sohoadongtgt || "").trim();
-    if (soHoaDon && !/^\d{7}$/.test(soHoaDon)) {
+    if (soHoaDon && soHoaDon.length < 5) {
       showError(
-        "LỖI: Số hóa đơn GTGT (nếu có) phải bao gồm ĐÚNG 7 CHỮ SỐ liên tiếp!",
+        "LỖI: Định dạng Số hóa đơn GTGT không hợp lệ. Vui lòng kiểm tra lại!",
       );
       return;
     }
@@ -409,7 +376,7 @@ export default function PhieuNhapView() {
       )
     ) {
       showError(
-        "Vui lòng nhập đủ Đơn vị, Số Lô, Ngày sản xuất và Hạn sử dụng!",
+        "Vui lòng nhập đủ Đơn vị, Số Lô, Ngày sản xuất và Hạn sử dụng cho tất cả hàng hóa!",
       );
       return;
     }
@@ -432,23 +399,23 @@ export default function PhieuNhapView() {
 
     for (const item of chiTietData) {
       const thuoc: any = danhSachThuoc.find(
-        (t: any) => t.mathuoc === item.mathuoc,
+        (t: any) => t.mathuoc === String(item.mathuoc) || t.mathuoc === item.mathuoc,
       );
+      
       const sodangky = String(thuoc?.sodangky || "").toUpperCase();
-
       const hsd = new Date(item.hansudung);
       const nsx = new Date(item.ngaysanxuat);
 
       if (nsx >= hsd) {
         showError(
-          `LỖI: Tại mặt hàng [${thuoc.tenthuoc}], Ngày sản xuất phải diễn ra TRƯỚC Hạn sử dụng!`,
+          `LỖI: Tại mặt hàng [${thuoc?.tenthuoc || 'Không rõ'}], Ngày sản xuất phải diễn ra TRƯỚC Hạn sử dụng!`,
         );
         return;
       }
 
       if (hsd <= ngayNhap) {
         showError(
-          `LỖI: Thuốc [${thuoc.tenthuoc}] đã hết hạn sử dụng. Không được phép nhập kho!`,
+          `LỖI: Thuốc [${thuoc?.tenthuoc || 'Không rõ'}] đã hết hạn sử dụng. Không được phép nhập kho!`,
         );
         return;
       }
@@ -463,7 +430,7 @@ export default function PhieuNhapView() {
 
         if (thangTuoiTho <= 36 && thangTuNgaySanXuat > 6) {
           showError(
-            `LỖI GSP: Thuốc nhập khẩu [${thuoc.tenthuoc}] có tuổi thọ ${thangTuoiTho} tháng.\nQuy định: Không được nhập kho khi đã quá 6 tháng kể từ Ngày Sản Xuất (Lô này đã qua ${thangTuNgaySanXuat} tháng)!`,
+            `LỖI GSP: Thuốc nhập khẩu [${thuoc?.tenthuoc || 'Không rõ'}] có tuổi thọ ${thangTuoiTho} tháng.\nQuy định: Không được nhập kho khi đã quá 6 tháng kể từ Ngày Sản Xuất (Lô này đã qua ${thangTuNgaySanXuat} tháng)!`,
           );
           return;
         }
@@ -632,18 +599,19 @@ export default function PhieuNhapView() {
                 <label className='block text-xs font-medium text-gray-500 mb-1'>
                   SỐ HÓA ĐƠN GTGT
                 </label>
+                {/* ĐÃ SỬA: Mở rộng ký tự để nhập đúng chuẩn Hóa đơn điện tử */}
                 <input
                   value={masterForm.sohoadongtgt}
                   onChange={(e) =>
                     setMasterForm({
                       ...masterForm,
-                      sohoadongtgt: e.target.value,
+                      sohoadongtgt: e.target.value.toUpperCase(),
                     })
                   }
                   type='text'
-                  maxLength={7}
-                  placeholder='Để đối chiếu thuế (7 số)...'
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500'
+                  maxLength={20}
+                  placeholder='VD: 1C26TAA-00001234'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 uppercase'
                 />
               </div>
 

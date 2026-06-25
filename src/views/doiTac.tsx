@@ -126,7 +126,18 @@ export default function DoiTacView() {
                   : "font-medium text-gray-500"
               }
             >
-              Nợ: {formatCurrency(dt.tongnohientai)}
+              Công Nợ của khách hàng: {formatCurrency(dt.tongnohientai)}
+            </div>
+          )}
+          {dt.loaidoitac === "NhaCungCap" && (
+            <div
+              className={
+                dt.tongnohientai > 0
+                  ? "font-medium text-red-600"
+                  : "font-medium text-gray-500"
+              }
+            >
+              Công Nợ phải trả: {formatCurrency(dt.tongnohientai)}
             </div>
           )}
           <div
@@ -356,7 +367,7 @@ export default function DoiTacView() {
                 <th className='p-4 font-semibold w-16'>Mã</th>
                 <th className='p-4 font-semibold'>Tên Đối tác</th>
                 <th className='p-4 font-semibold'>Liên hệ</th>
-                <th className='p-4 font-semibold'>Công nợ / Giao dịch</th>
+                <th className='p-4 font-semibold'>Công nợ & Giao dịch</th>
                 <th className='p-4 font-semibold'>Trạng thái</th>
                 <th className='p-4 font-semibold'>Thao tác</th>
               </tr>
@@ -494,6 +505,22 @@ export default function DoiTacView() {
                   <div>
                     <label className='block text-sm font-bold text-red-600 mb-1'>
                       Công nợ khách hàng (VND)
+                    </label>
+                    <input
+                      name='tongnohientai'
+                      value={formData.tongnohientai}
+                      onChange={handleFormChange}
+                      type='number'
+                      min='0'
+                      placeholder='Nhập để cấn trừ nợ...'
+                      className='w-full px-3 py-2 border-2 border-red-300 bg-red-50 text-red-700 font-bold rounded-lg focus:ring-2 focus:ring-red-400 outline-none transition'
+                    />
+                  </div>
+                )}
+                {formData.loaidoitac === "NhaCungCap" && (
+                  <div>
+                    <label className='block text-sm font-bold text-red-600 mb-1'>
+                      Công nợ của ta (VND)
                     </label>
                     <input
                       name='tongnohientai'

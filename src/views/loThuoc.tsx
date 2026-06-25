@@ -3,7 +3,7 @@ import api from "../services/api";
 import { formatDate } from "../utils/customFunction";
 import SearchInput from "../components/common/searchInput";
 import ReloadBtn from "../components/common/reloadBtn";
-import { showSuccess,showError } from "../utils/notify";
+import { showSuccess, showError } from "../utils/notify";
 
 export default function LoThuocView() {
   const [danhSachLo, setDanhSachLo] = useState<any[]>([]);
@@ -124,19 +124,20 @@ export default function LoThuocView() {
       </tr>
     ));
   }
+
   // --- TÌM KIẾM ---
- const displayedLo = danhSachLo.filter((lo) => {
+  const displayedLo = danhSachLo.filter((lo) => {
     return (
       (lo.solo || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (lo.tenthuoc || "").toLowerCase().includes(searchQuery.toLowerCase())
     );
   });
 
-  // --- HÀM HELPER: LẤY TÊN VỊ TRÍ KHO ---
+  // ĐÃ SỬA: LẤY ĐÚNG TÊN CỘT THEO DATABASE (ma_toado) & ÉP KIỂU STRING
   const getTenViTri = (mavitri: any): string | null => {
     if (!mavitri) return null;
-    const vt = danhSachViTri.find((v: any) => v.mavitri === mavitri);
-    if (vt) return `[${vt.makhuvuc}] ${vt.day} - ${vt.ke}`;
+    const vt = danhSachViTri.find((v: any) => String(v.mavitri) === String(mavitri));
+    if (vt) return vt.ma_toado; // Trả về tọa độ hiển thị cho gọn (VD: A-01-01)
     return null;
   };
 
@@ -153,6 +154,7 @@ export default function LoThuocView() {
         : "",
       tonthucte: Number(lo.tonthucte),
       tonkhadung: Number(lo.tonkhadung),
+      mavitri: lo.mavitri || "", // Đảm bảo lấy đúng vị trí hiện tại
     });
     setShowModal(true);
   };
@@ -202,13 +204,12 @@ export default function LoThuocView() {
           Quản lý Lô thuốc & Tồn kho
         </h2>
         <div className="flex justify-center gap-4">
-        <SearchInput
-          searchValue={searchQuery}
-          func={setSearchQuery}
-          placeholder='Tìm số lô, tên thuốc...'
-        />
-
-        <ReloadBtn func={getData} />
+          <SearchInput
+            searchValue={searchQuery}
+            func={setSearchQuery}
+            placeholder='Tìm số lô, tên thuốc...'
+          />
+          <ReloadBtn func={getData} />
         </div>
       </div>
 
@@ -350,10 +351,10 @@ export default function LoThuocView() {
                     className='w-full px-3 py-2 border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none bg-white font-medium text-indigo-900'
                   >
                     <option value=''>-- Chưa sắp xếp vị trí --</option>
+                    {/* ĐÃ SỬA: Lấy tên thuộc tính chuẩn từ DB */}
                     {danhSachViTri.map((vt) => (
                       <option key={vt.mavitri} value={vt.mavitri}>
-                        Khu vực: {vt.makhuvuc} | Dãy: {vt.day} | Kệ: {vt.ke} |
-                        Tầng: {vt.tang}
+                        [{vt.loai_baoquan}] {vt.ma_toado} - {vt.ten_vitri}
                       </option>
                     ))}
                   </select>
