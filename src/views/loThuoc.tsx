@@ -3,6 +3,7 @@ import api from "../services/api";
 import { formatDate } from "../utils/customFunction";
 import SearchInput from "../components/common/searchInput";
 import ReloadBtn from "../components/common/reloadBtn";
+import FilterNum from "../components/common/filterNum";
 import { showSuccess, showError } from "../utils/notify";
 
 export default function LoThuocView() {
@@ -15,6 +16,7 @@ export default function LoThuocView() {
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterValue, setFilterValue] = useState("macdinh");
 
   const defaultForm = {
     solo: "",
@@ -127,16 +129,31 @@ export default function LoThuocView() {
 
   // --- TÌM KIẾM ---
   const displayedLo = danhSachLo.filter((lo) => {
-    return (
+    // 1. XỬ LÝ ĐIỀU KIỆN TRẠNG THÁI (filterValue)
+    let matchesStatus = true; // Mặc định true nghĩa là nếu "macdinh" thì luôn thỏa mãn
+
+    if (filterValue === "sansangban") {
+      matchesStatus = String(lo.trangthai || "").toLowerCase() === "sansangban";
+    } else if (filterValue === "biettru") {
+      matchesStatus =
+        String(lo.trangthai || "").toLowerCase() === "biettru";
+    }
+
+    // 2. XỬ LÝ ĐIỀU KIỆN TÌM KIẾM CHỮ (searchQuery)
+    const matchesSearch =
       (lo.solo || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (lo.tenthuoc || "").toLowerCase().includes(searchQuery.toLowerCase())
-    );
+      (lo.tenthuoc || "").toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Bắt buộc phải thỏa mãn ĐỒNG THỜI cả trạng thái VÀ từ khóa tìm kiếm
+    return matchesStatus && matchesSearch;
   });
 
   // ĐÃ SỬA: LẤY ĐÚNG TÊN CỘT THEO DATABASE (ma_toado) & ÉP KIỂU STRING
   const getTenViTri = (mavitri: any): string | null => {
     if (!mavitri) return null;
-    const vt = danhSachViTri.find((v: any) => String(v.mavitri) === String(mavitri));
+    const vt = danhSachViTri.find(
+      (v: any) => String(v.mavitri) === String(mavitri),
+    );
     if (vt) return vt.ma_toado; // Trả về tọa độ hiển thị cho gọn (VD: A-01-01)
     return null;
   };
@@ -203,11 +220,20 @@ export default function LoThuocView() {
         <h2 className='text-2xl font-bold text-gray-800'>
           Quản lý Lô thuốc & Tồn kho
         </h2>
-        <div className="flex justify-center gap-4">
+        <div className='flex justify-center gap-4'>
           <SearchInput
             searchValue={searchQuery}
             func={setSearchQuery}
             placeholder='Tìm số lô, tên thuốc...'
+          />
+          <FilterNum
+            filterValue={filterValue}
+            func={setFilterValue}
+            itemList={[
+              { name: "Mặc định", value: "macdinh" },
+              { name: "Sẵn sàng bán", value: "sansangban" },
+              { name: "Biệt trừ", value: "biettru" },
+            ]}
           />
           <ReloadBtn func={getData} />
         </div>
