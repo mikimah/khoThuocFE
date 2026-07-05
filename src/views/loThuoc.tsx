@@ -16,7 +16,7 @@ export default function LoThuocView() {
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterValue, setFilterValue] = useState("macdinh");
+  const [filterValue, setFilterValue] = useState("tatca");
 
   const defaultForm = {
     solo: "",
@@ -130,7 +130,7 @@ export default function LoThuocView() {
   // --- TÌM KIẾM ---
   const displayedLo = danhSachLo.filter((lo) => {
     // 1. XỬ LÝ ĐIỀU KIỆN TRẠNG THÁI (filterValue)
-    let matchesStatus = true; // Mặc định true nghĩa là nếu "macdinh" thì luôn thỏa mãn
+    let matchesStatus = true; // Mặc định true nghĩa là nếu "tatca" thì luôn thỏa mãn
 
     if (filterValue === "sansangban") {
       matchesStatus = String(lo.trangthai || "").toLowerCase() === "sansangban";
@@ -230,7 +230,7 @@ export default function LoThuocView() {
             filterValue={filterValue}
             func={setFilterValue}
             itemList={[
-              { name: "Mặc định", value: "macdinh" },
+              { name: "Tất cả", value: "tatca" },
               { name: "Sẵn sàng bán", value: "sansangban" },
               { name: "Biệt trừ", value: "biettru" },
             ]}

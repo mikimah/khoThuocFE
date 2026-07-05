@@ -8,7 +8,7 @@ export default function FilterNum({itemList,func,filterValue}) {
 
   return (
     <button 
-      className={`flex relative rounded-md items-center  px-2 gap-1 text-sm text-gray-500  hover:cursor-pointer ${isOpen ? " bg-gray-300 text-white " : "hover:text-gray-700"}`}
+      className={`flex relative rounded-md items-center  px-2 gap-1 text-sm text-gray-500  hover:cursor-pointer hover:-translate-y-1 transition-all duration-500 ease-in-out  ${isOpen ? " bg-gray-300 text-white " : "hover:text-gray-700"}`}
       onClick={() => setIsOpen(!isOpen)}
     >
       <ListFilter size={20}/>

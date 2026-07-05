@@ -4,7 +4,7 @@ import { useAuthStore } from "../context/useAuthStore";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
-import { showSuccess,showError } from "../utils/notify";
+import { showSuccess, showError } from "../utils/notify";
 
 export default function KiemKeView() {
   const authStore = useAuthStore();
@@ -135,27 +135,26 @@ export default function KiemKeView() {
     setShowForm(true);
   };
   // có thể kham khảo
-// const openForm = () => {
-//   const now = new Date();
-  
-//   const yyyy = now.getFullYear();
-//   const mm = String(now.getMonth() + 1).padStart(2, '0');
-//   const dd = String(now.getDate()).padStart(2, '0');
-  
-//   const hh = String(now.getHours()).padStart(2, '0');
-//   const min = String(now.getMinutes()).padStart(2, '0');
-//   const ss = String(now.getSeconds()).padStart(2, '0');
+  // const openForm = () => {
+  //   const now = new Date();
 
+  //   const yyyy = now.getFullYear();
+  //   const mm = String(now.getMonth() + 1).padStart(2, '0');
+  //   const dd = String(now.getDate()).padStart(2, '0');
 
-//   const maPhieu = `PKK-${yyyy}${mm}${dd}-${hh}${min}${ss}`;
+  //   const hh = String(now.getHours()).padStart(2, '0');
+  //   const min = String(now.getMinutes()).padStart(2, '0');
+  //   const ss = String(now.getSeconds()).padStart(2, '0');
 
-//   setMasterForm((prev) => ({
-//     ...prev,
-//     maphieu: maPhieu,
-//   }));
-//   setChiTietKiemKe([]);
-//   setShowForm(true);
-// };
+  //   const maPhieu = `PKK-${yyyy}${mm}${dd}-${hh}${min}${ss}`;
+
+  //   setMasterForm((prev) => ({
+  //     ...prev,
+  //     maphieu: maPhieu,
+  //   }));
+  //   setChiTietKiemKe([]);
+  //   setShowForm(true);
+  // };
   // --- HÀM MỞ POPUP CHI TIẾT KIỂM KÊ ---
   const openDetail = async (phieu: any) => {
     setSelectedMaster(phieu);
@@ -167,7 +166,9 @@ export default function KiemKeView() {
       const res: any = await api.get(`/chitietkiemke/phieu/${phieu.maphieu}`);
       setSelectedDetails(res.data || []);
     } catch (error: any) {
-      console.log("Lỗi tải chi tiết kiểm kê: " + (error.message || "Lỗi hệ thống"));
+      console.log(
+        "Lỗi tải chi tiết kiểm kê: " + (error.message || "Lỗi hệ thống"),
+      );
       showError(error.message || "Lỗi tải chi tiết kiểm kê");
     } finally {
       setIsLoadingDetail(false);
@@ -199,7 +200,7 @@ export default function KiemKeView() {
 
   // Khi chọn lô, tự động điền tồn kho hiện tại trong hệ thống
   const handleChonLo = (index: number, value: string) => {
-    const loSelected = danhSachLo.find((l: any) => l.malo === value);
+    const loSelected = danhSachLo.find((l: any) => l.malo == value);
     setChiTietKiemKe((prev) => {
       const newData = [...prev];
       newData[index].malo = value;
@@ -352,7 +353,7 @@ export default function KiemKeView() {
                   Danh sách mặt hàng kiểm đếm
                 </h3>
                 <button
-                  onClick={themDongKiemKe}
+                  onClick={() => themDongKiemKe()}
                   className='bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg text-xs font-bold border border-blue-200 transition'
                 >
                   + Chọn Lô Kiểm Kê
@@ -370,9 +371,9 @@ export default function KiemKeView() {
                     <th className='p-3 w-10'></th>
                   </tr>
                 </thead>
-                <tbody>{renderItems(displayedPhieu)}</tbody>
+                <tbody>{renderItems(chiTietKiemKe)}</tbody>
               </table>
-              {chiTietKiemKe.length === 0 && (
+              {chiTietKiemKe.length == 0 && (
                 <div className='py-20 text-center text-gray-400 italic text-sm'>
                   Bấm "+ Chọn Lô Kiểm Kê" để bắt đầu nhập dữ liệu đếm thực tế.
                 </div>
