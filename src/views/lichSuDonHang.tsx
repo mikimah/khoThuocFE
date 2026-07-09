@@ -3,7 +3,7 @@ import api from "../services/api";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import ReloadBtn from "../components/common/reloadBtn";
 import { Search } from "lucide-react";
-import { showSuccess,showError } from "../utils/notify";
+import { showSuccess, showError } from "../utils/notify";
 
 export default function LichSuDonHangView() {
   const [danhSachDonHang, setDanhSachDonHang] = useState<any[]>([]);
@@ -238,9 +238,7 @@ export default function LichSuDonHangView() {
   return (
     <div className='bg-white p-6 rounded-xl shadow-sm border border-gray-100 min-h-screen'>
       <div className='flex justify-between items-center mb-6'>
-        <h2 className='text-2xl font-bold text-gray-800'>
-           Lịch sử Giao dịch
-        </h2>
+        <h2 className='text-2xl font-bold text-gray-800'>Lịch sử Giao dịch</h2>
         <ReloadBtn func={getData} />
       </div>
 
@@ -257,7 +255,9 @@ export default function LichSuDonHangView() {
               placeholder='Tìm mã đơn, tên đối tác...'
               className='w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500'
             />
-            <span className='absolute right-3 top-[45%] transform -translate-y-1/2 text-gray-400'><Search className="inline-block w-5 h-5" /></span>
+            <span className='absolute right-3 top-[45%] transform -translate-y-1/2 text-gray-400'>
+              <Search className='inline-block w-5 h-5' />
+            </span>
           </div>
         </div>
 
