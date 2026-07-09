@@ -33,6 +33,7 @@ export default function DoiTacView() {
     sodienthoai: "",
     email: "",
     trangthai: "Dang hop tac",
+    hanmucno: 0,
     tongnohientai: 0,
   };
   const [formData, setFormData] = useState({ ...defaultForm });
@@ -484,41 +485,54 @@ export default function DoiTacView() {
                 </div>
               </div>
 
-              <div
-                className={`grid gap-4 ${formData.loaidoitac === "KhachHang" ? "grid-cols-2" : "grid-cols-1"}`}
-              >
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>
-                    Địa chỉ
-                  </label>
-                  <input
-                    name='diachi'
-                    value={formData.diachi}
-                    onChange={handleFormChange}
-                    type='text'
-                    className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none'
-                    required
-                  />
-                </div>
+              <div>
+                <label className='block text-sm font-medium text-gray-700 mb-1'>
+                  Địa chỉ
+                </label>
+                <input
+                  name='diachi'
+                  value={formData.diachi}
+                  onChange={handleFormChange}
+                  type='text'
+                  className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none'
+                  required
+                />
+              </div>
 
-                {formData.loaidoitac === "KhachHang" && (
-                  <div>
-                    <label className='block text-sm font-bold text-red-600 mb-1'>
-                      Công nợ khách hàng (VND)
-                    </label>
-                    <input
-                      name='tongnohientai'
-                      value={formData.tongnohientai}
-                      onChange={handleFormChange}
-                      type='number'
-                      min='0'
-                      placeholder='Nhập để cấn trừ nợ...'
-                      className='w-full px-3 py-2 border-2 border-red-300 bg-red-50 text-red-700 font-bold rounded-lg focus:ring-2 focus:ring-red-400 outline-none transition'
-                    />
-                  </div>
-                )}
-                {formData.loaidoitac === "NhaCungCap" && (
-                  <div>
+              <div className='grid gap-4 grid-cols-2'>
+                {formData.loaidoitac === "KhachHang" ? (
+                  <>
+                    <div>
+                      <label className='block text-sm font-bold text-blue-600 mb-1'>
+                        Hạn mức nợ (VND)
+                      </label>
+                      <input
+                        name='hanmucno'
+                        value={formData.hanmucno}
+                        onChange={handleFormChange}
+                        type='number'
+                        min='0'
+                        placeholder='0 = Không giới hạn'
+                        className='w-full px-3 py-2 border-2 border-blue-300 bg-blue-50 text-blue-700 font-bold rounded-lg focus:ring-2 focus:ring-blue-400 outline-none transition'
+                      />
+                    </div>
+                    <div>
+                      <label className='block text-sm font-bold text-red-600 mb-1'>
+                        Công nợ hiện tại (VND)
+                      </label>
+                      <input
+                        name='tongnohientai'
+                        value={formData.tongnohientai}
+                        onChange={handleFormChange}
+                        type='number'
+                        min='0'
+                        placeholder='Nhập để cấn trừ nợ...'
+                        className='w-full px-3 py-2 border-2 border-red-300 bg-red-50 text-red-700 font-bold rounded-lg focus:ring-2 focus:ring-red-400 outline-none transition'
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className='col-span-2'>
                     <label className='block text-sm font-bold text-red-600 mb-1'>
                       Công nợ của ta (VND)
                     </label>

@@ -142,17 +142,23 @@ export default function LichSuDonHangView() {
           <td className='px-5 py-3 text-sm text-right text-gray-700'>
             {formatCurrency(row.dongia ?? row.gianhap ?? 0)}
           </td>
-          <td className='px-5 py-3 text-sm text-right font-black text-gray-800'>
+          <td className='px-5 py-3 text-sm text-center text-orange-600 font-bold'>
+            {row.tylechietchkhau ?? 0}%
+          </td>
+          <td className='px-5 py-3 text-sm text-right font-black text-green-700'>
             {formatCurrency(
-              Number(row.soluongthucte ?? row.soluongyeucau ?? 0) *
-                Number(row.dongia ?? row.gianhap ?? 0),
+              Math.max(0, Number(row.soluongthucte ?? row.soluongyeucau ?? 0) *
+                Number(row.dongia ?? row.gianhap ?? 0) - Number(row.tienchietchkhau ?? 0))
+            )}
+            {Number(row.tienchietchkhau) > 0 && (
+              <span className='block text-[10px] text-orange-500 font-normal'>-{formatCurrency(row.tienchietchkhau)} CK</span>
             )}
           </td>
         </tr>
       ))
     ) : (
       <tr>
-        <td colSpan={6} className='px-5 py-8 text-center text-gray-400 italic'>
+        <td colSpan={7} className='px-5 py-8 text-center text-gray-400 italic'>
           Không có dữ liệu chi tiết.
         </td>
       </tr>
@@ -411,6 +417,9 @@ export default function LichSuDonHangView() {
                           </th>
                           <th className='px-5 py-3 font-bold text-right'>
                             Đơn giá
+                          </th>
+                          <th className='px-5 py-3 font-bold text-center text-orange-600'>
+                            CK(%)
                           </th>
                           <th className='px-5 py-3 font-bold text-right'>
                             Thành tiền

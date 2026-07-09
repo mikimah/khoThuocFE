@@ -507,6 +507,9 @@ export default function DuyetDonHangView() {
                               <th className='px-5 py-3 font-bold text-right'>
                                 Đơn giá
                               </th>
+                              <th className='px-5 py-3 font-bold text-center text-orange-600'>
+                                CK(%)
+                              </th>
                               <th className='px-5 py-3 font-bold text-right'>
                                 Thành tiền
                               </th>
@@ -556,13 +559,19 @@ export default function DuyetDonHangView() {
                                     row.dongia ?? row.gianhap ?? 0,
                                   )}
                                 </td>
-                                <td className='px-5 py-3 text-sm text-right font-black text-gray-800'>
+                                <td className='px-5 py-3 text-sm text-center text-orange-600 font-bold'>
+                                  {row.tylechietchkhau ?? 0}%
+                                </td>
+                                <td className='px-5 py-3 text-sm text-right font-black text-green-700'>
                                   {formatCurrency(
-                                    Number(
+                                    Math.max(0, Number(
                                       row.soluongthucte ??
                                         row.soluongyeucau ??
                                         0,
-                                    ) * Number(row.dongia ?? row.gianhap ?? 0),
+                                    ) * Number(row.dongia ?? row.gianhap ?? 0) - Number(row.tienchietchkhau ?? 0))
+                                  )}
+                                  {Number(row.tienchietchkhau) > 0 && (
+                                    <span className='block text-[10px] text-orange-500 font-normal'>-{formatCurrency(row.tienchietchkhau)} CK</span>
                                   )}
                                 </td>
                               </tr>
