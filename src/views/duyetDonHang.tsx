@@ -39,7 +39,7 @@ export default function DuyetDonHangView() {
       // CHỈ LỌC NHỮNG PHIẾU KIỂM KÊ ĐANG CHỜ DUYỆT
       const pkkChoDuyet = (resPKK.data || [])
         .filter(
-          (p: any) => p.trangthai === "dangkhiemke" || p.trangthai === "Draft",
+          (p: any) => p.trangthai === "dangkiemke" || p.trangthai === "Draft",
         )
         .map((p: any) => ({
           madonhang: p.maphieu,
@@ -240,7 +240,7 @@ export default function DuyetDonHangView() {
       return;
 
     try {
-      await api.put(`/phieukiemke/${maphieu}/trangthai`, { trangthai: "huy" });
+      await api.put(`/phieukiemke/${maphieu}/trangthai`, { trangthai: "dahuy" });
       showSuccess(`Đã từ chối phiếu kiểm kê!`);
       getData();
     } catch (error: any) {

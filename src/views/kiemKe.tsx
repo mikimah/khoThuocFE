@@ -25,7 +25,7 @@ export default function KiemKeView() {
     maphieu: "",
     ngaykiemke: new Date().toISOString().split("T")[0],
     nguoitao: authStore.user?.tendangnhap || "NhanVien",
-    trangthai: "dangkhiemke",
+    trangthai: "dangkiemke",
   });
 
   const [chiTietKiemKe, setChiTietKiemKe] = useState<any[]>([]);
@@ -442,6 +442,10 @@ export default function KiemKeView() {
                         <span className='bg-green-100 text-green-700 px-2 py-1 rounded-md text-[10px] font-black uppercase border border-green-200'>
                           Hoàn thành
                         </span>
+                      ) : phieu.trangthai === "dahuy" ? (
+                        <span className='bg-red-100 text-red-700 px-2 py-1 rounded-md text-[10px] font-black uppercase border border-red-200'>
+                          Đã hủy
+                        </span>
                       ) : (
                         <span className='bg-yellow-100 text-yellow-700 px-2 py-1 rounded-md text-[10px] font-black uppercase border border-yellow-200'>
                           Đang đợi duyệt
@@ -521,6 +525,10 @@ export default function KiemKeView() {
                     {selectedMaster?.trangthai === "hoanthanh" ? (
                       <span className='text-green-600 font-bold text-sm'>
                         ✅ Đã bù trừ kho
+                      </span>
+                    ) : selectedMaster?.trangthai === "dahuy" ? (
+                      <span className='text-red-600 font-bold text-sm'>
+                        ❌ Đã hủy
                       </span>
                     ) : (
                       <span className='text-yellow-600 font-bold text-sm'>

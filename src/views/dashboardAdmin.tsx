@@ -41,7 +41,7 @@ export default function DashboardAdmin() {
 
             // 3. Tính SỐ ĐƠN CHỜ DUYỆT (Bao gồm Đơn Nhập/Xuất chờ duyệt + Phiếu Kiểm Kê chờ duyệt)
             const soDHChoDuyet = donHangData.filter((dh: any) => dh.trangthai === 'choduyet').length;
-            const soKiemKeChoDuyet = pkkData.filter((p: any) => p.trangthai === 'dangkhiemke' || p.trangthai === 'Draft').length;
+            const soKiemKeChoDuyet = pkkData.filter((p: any) => p.trangthai === 'dangkiemke' || p.trangthai === 'Draft').length;
             setSoDonChoDuyet(soDHChoDuyet + soKiemKeChoDuyet);
 
             // 4. Lấy 5 giao dịch mới nhất cho Bảng Lịch sử (bao gồm cả nhập và xuất)
