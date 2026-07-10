@@ -58,9 +58,8 @@ export default function SideBar() {
               <Handshake className='inline-block w-5 h-5 mr-2' /> Đối tác
             </NavLink>
 
-            {(isAdmin || isKho) && (
+            {(isKho) && (
               <>
-
                 <NavLink to='/lo-thuoc' className={getMenuClass}>
                   <Boxes className='inline-block w-5 h-5 mr-2' /> Quản lý Lô
                 </NavLink>
@@ -70,19 +69,30 @@ export default function SideBar() {
                 <NavLink to='/kiem-ke' className={getMenuClass}>
                   <Clipboard className='inline-block w-5 h-5 mr-2' /> Kiểm kê
                 </NavLink>
+                <NavLink to='/lich-su-don-hang' className={getMenuClass}>
+                  <ScrollText className='inline-block w-5 h-5 mr-2' /> Lịch sử đơn hàng
+                </NavLink>
               </>
             )}
 
             {/* PHÂN HỆ SALES: Chỉ Admin và Nhân viên Sales được thấy */}
-            {(isAdmin || isSales) && (
-              <NavLink to='/xuat-kho' className={getMenuClass}>
-                <Truck className='inline-block w-5 h-5 mr-2' /> Xuất kho
-              </NavLink>
+            {(isSales) && (
+              <>
+                <NavLink to='/xuat-kho' className={getMenuClass}>
+                  <Truck className='inline-block w-5 h-5 mr-2' /> Xuất kho
+                </NavLink>
+                <NavLink to='/lich-su-don-hang' className={getMenuClass}>
+                  <ScrollText className='inline-block w-5 h-5 mr-2' /> Lịch sử đơn hàng
+                </NavLink>
+              </>
             )}
 
             {/* PHÂN HỆ QUẢN TRỊ CAO CẤP: Chỉ Admin được thấy */}
             {isAdmin && (
               <>
+                <NavLink to='/lo-thuoc' className={getMenuClass}>
+                  <Boxes className='inline-block w-5 h-5 mr-2' /> Quản lý Lô
+                </NavLink>
                 <NavLink to='/duyet-don' className={getMenuClass}>
                   <CircleCheck className='inline-block w-5 h-5 mr-2' /> Duyệt đơn hàng
                 </NavLink>

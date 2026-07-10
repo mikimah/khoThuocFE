@@ -29,6 +29,10 @@ export default function PhieuXuatView() {
     tiendathanhtoan: 0,
   });
 
+  // --- THANH TOÁN ---
+  const [hinhThucThanhToan, setHinhThucThanhToan] = useState<"roi" | "no" | "tratruoc">("roi");
+  const [soTienDaTra, setSoTienDaTra] = useState<number>(0);
+
   const [chiTietData, setChiTietData] = useState<any[]>([]);
 
   const getData = async () => {
@@ -79,8 +83,6 @@ export default function PhieuXuatView() {
                 malo: "",
               };
               setChiTietData(updatedData);
-              console.log("Selected item:", updatedData[index]);
-              //handleChonThuoc(updatedData[index]);
             }}
             className='w-full px-2 py-2 border border-gray-300 rounded-md text-sm outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
             required
@@ -104,7 +106,6 @@ export default function PhieuXuatView() {
               ...item,
               malo: e.target.value,
             };
-          // Bỏ comment dòng này và truyền (index, object) vào:
           handleChonLoHoacDonVi(index, updatedData[index]);
         }}
             className='w-full px-2 py-2 border border-gray-300 rounded-md text-xs outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
@@ -130,9 +131,8 @@ export default function PhieuXuatView() {
                 const updatedData = [...prev];
                 updatedData[index] = {
                   ...updatedData[index],
-                  madonvitinh: selectedValue, // Cập nhật trực tiếp vào State của dòng
+                  madonvitinh: selectedValue,
                 };
-                // Kích hoạt tính lại giá tiền ngay lập tức dựa trên đơn vị mới chọn
                 setTimeout(() => handleChonLoHoacDonVi(index, updatedData[index]), 0);
                 return updatedData;
               });
@@ -151,19 +151,16 @@ export default function PhieuXuatView() {
             ))}
           </select>
         </td>
-<td className='p-2 align-top'>
+        <td className='p-2 align-top'>
           <div className='flex flex-col items-center'>
             <input
               value={item.soluongthucte}
               onChange={(e) => {
                 const updatedData = [...chiTietData];
-                updatedData[index] = {
-                  ...item,
-                  soluongthucte: e.target.value, // Bỏ bọc Number() để gõ xóa tự do
-                };
+                updatedData[index] = { ...item, soluongthucte: e.target.value };
                 setChiTietData(updatedData);
               }}
-              onBlur={() => kiemTraSoLuong(index)} // <--- ĐÃ TRUYỀN INDEX
+              onBlur={() => kiemTraSoLuong(index)}
               type='number'
               disabled={!item.malo || !item.madonvitinh}
               className='w-full px-4 py-2 border rounded-md text-sm text-center font-black shadow-sm outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
@@ -188,20 +185,52 @@ export default function PhieuXuatView() {
           <div className='relative'>
             <input
               value={item.phantramlai}
-              // CHỈ CẦN GỌI ĐÚNG 1 DÒNG NÀY: Truyền index và giá trị % mới vào
               onChange={(e) => tinhDonGiaBan(index, Number(e.target.value))}
               type='number'
               className='w-full px-2 py-2 border border-gray-300 rounded-md text-sm text-center font-bold outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
             />
-            <span className='absolute right-1 top-2.5 text-[10px] font-bold text-gray-400'>
-              %
-            </span>
+            <span className='absolute right-1 top-2.5 text-[10px] font-bold text-gray-400'>%</span>
           </div>
         </td>
         <td className='p-2 text-right align-top'>
           <span className='font-black text-red-600 text-md block pt-1'>
             {formatCurrency(item.dongia)}
           </span>
+        </td>
+        {/* CỘT TY LỆ CK */}
+        <td className='p-2 align-top'>
+          <div className='relative'>
+            <input
+              value={item.tylechietchkhau ?? 0}
+              onChange={(e) => {
+                const tyle = Number(e.target.value);
+                setChiTietData((prev) => {
+                  const updated = [...prev];
+                  const sl = Number(updated[index].soluongthucte) || 0;
+                  const dg = Number(updated[index].dongia) || 0;
+                  const tienCK = dg * sl * (tyle / 100);
+                  updated[index] = { ...updated[index], tylechietchkhau: tyle, tienchietchkhau: tienCK };
+                  return updated;
+                });
+              }}
+              type='number'
+              min='0'
+              max='100'
+              className='w-full px-2 py-2 border border-orange-300 bg-orange-50 rounded-md text-sm text-center font-bold text-orange-700 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
+            />
+            <span className='absolute right-1 top-2.5 text-[10px] font-bold text-orange-400'>%</span>
+          </div>
+        </td>
+        {/* CỘT THÀNH TIỀN */}
+        <td className='p-2 text-right align-top'>
+          <span className='font-black text-green-700 text-sm block pt-1'>
+            {formatCurrency(
+              Math.max(0, Number(item.dongia) * Number(item.soluongthucte) - Number(item.tienchietchkhau || 0))
+            )}
+          </span>
+          {Number(item.tienchietchkhau) > 0 && (
+            <span className='text-[10px] text-orange-500 font-bold block'>-{formatCurrency(item.tienchietchkhau)} CK</span>
+          )}
         </td>
         <td className='p-2 text-center align-top pt-3'>
           <button
@@ -224,6 +253,8 @@ export default function PhieuXuatView() {
       tiendathanhtoan: 0,
     });
     setChiTietData([]);
+    setHinhThucThanhToan("roi");
+    setSoTienDaTra(0);
     setShowForm(true);
   };
 
@@ -240,6 +271,8 @@ export default function PhieuXuatView() {
         gianhap: 0,
         phantramlai: 10,
         dongia: 0,
+        tylechietchkhau: 0,
+        tienchietchkhau: 0,
       },
     ]);
   };
@@ -535,6 +568,13 @@ export default function PhieuXuatView() {
 
     try {
       setIsLoading(true);
+
+      // Tính tiendathanhtoan dựa theo hình thức thanh toán
+      let tiendathanhtoanFinal = 0;
+      if (hinhThucThanhToan === "roi") tiendathanhtoanFinal = tongGiaTriDon;
+      else if (hinhThucThanhToan === "no") tiendathanhtoanFinal = 0;
+      else tiendathanhtoanFinal = Math.min(soTienDaTra, tongGiaTriDon);
+
       const donHangData = {
         madoitac: masterForm.madoitac,
         mataikhoan: authStore.user?.mataikhoan,
@@ -542,7 +582,7 @@ export default function PhieuXuatView() {
         mavandon3pl: masterForm.mavandon3pl,
         tonggiatri: tongGiaTriDon,
         tienchietkhau: masterForm.tienchietkhau,
-        tiendathanhtoan: masterForm.tiendathanhtoan,
+        tiendathanhtoan: tiendathanhtoanFinal,
         trangthai: "choduyet",
       };
       const resMaster: any = await api.post("/donhang", donHangData);
@@ -556,6 +596,8 @@ export default function PhieuXuatView() {
           soluongyeucau: item.soluongthucte,
           soluongthucte: item.soluongthucte,
           dongia: item.dongia,
+          tylechietchkhau: item.tylechietchkhau || 0,
+          tienchietchkhau: item.tienchietchkhau || 0,
         }),
       );
       await Promise.all(promises);
@@ -622,8 +664,191 @@ export default function PhieuXuatView() {
   }, [selectedDonHang, khachCanTraModal]);
 
   const handlePrint = () => {
-    window.print();
+    if (!selectedDonHang) return;
+
+    const khachHang = danhSachKhachHang.find(
+      (kh: any) => kh.madoitac === selectedDonHang.madoitac
+    );
+
+    // Build bảng hàng hóa
+    const tableRows = chiTietDonHang.map((ct: any, idx: number) => {
+      const sl = Number(ct.soluongthucte || 0);
+      const dg = Number(ct.dongia || 0);
+      const ck = Number(ct.tienchietchkhau || 0);
+      const thanhtien = Math.max(0, sl * dg - ck);
+      return `
+        <tr style="border-bottom: 1px solid #e5e7eb;">
+          <td style="padding: 8px 10px; text-align:center; color:#6b7280;">${idx + 1}</td>
+          <td style="padding: 8px 10px; font-weight:600;">${ct.tenthuoc || ct.mathuoc || "---"}</td>
+          <td style="padding: 8px 10px; color:#6b7280; font-size:12px;">${ct.solo || ct.solo_tam || "---"}</td>
+          <td style="padding: 8px 10px; text-align:center;">${sl}</td>
+          <td style="padding: 8px 10px; text-align:right;">${dg.toLocaleString("vi-VN")}đ</td>
+          <td style="padding: 8px 10px; text-align:center; color:#f97316;">${Number(ct.tylechietchkhau || 0)}%</td>
+          <td style="padding: 8px 10px; text-align:right; font-weight:700; color:#15803d;">${thanhtien.toLocaleString("vi-VN")}đ</td>
+        </tr>`;
+    }).join("");
+
+    const tongTien = tongTienHangModal;
+    const chietKhau = chietKhauModal;
+    const canTra = khachCanTraModal;
+    const daTra = Number(selectedDonHang.tiendathanhtoan || 0);
+    const conNo = Math.max(0, canTra - daTra);
+    const ngayIn = new Date().toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+    const html = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Phiếu Xuất Kho - Đơn #${selectedDonHang.madonhang}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Times New Roman', serif; font-size: 13px; color: #1f2937; background: #fff; }
+    @page { size: A4; margin: 15mm 15mm 15mm 20mm; }
+
+    /* HEADER */
+    .header { display: flex; align-items: center; gap: 18px; border-bottom: 3px double #1e40af; padding-bottom: 14px; margin-bottom: 14px; }
+    .logo { width: 80px; height: 80px; object-fit: contain; background: transparent; border: none; mix-blend-mode: multiply; }
+    .logo-placeholder { width: 80px; height: 80px; border: 2px dashed #cbd5e1; border-radius: 8px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#94a3b8; text-align:center; }
+    .pharmacy-info h1 { font-size: 18px; font-weight: 700; color: #1e40af; letter-spacing: 0.5px; }
+    .pharmacy-info p { font-size: 11.5px; color: #4b5563; margin-top: 2px; }
+
+    /* TITLE */
+    .doc-title { text-align: center; margin: 10px 0 16px; }
+    .doc-title h2 { font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #1f2937; }
+    .doc-title p { font-size: 12px; color: #6b7280; margin-top: 3px; }
+
+    /* INFO GRID */
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 12.5px; }
+    .info-grid .label { color: #6b7280; }
+    .info-grid .value { font-weight: 600; color: #1f2937; }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 12.5px; }
+    thead tr { background: #1e40af; color: #fff; }
+    thead th { padding: 9px 10px; font-weight: 600; }
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tfoot tr { background: #f1f5f9; font-weight: 700; }
+    tfoot td { padding: 9px 10px; border-top: 2px solid #cbd5e1; }
+
+    /* TOTALS + QR */
+    .bottom-section { display: flex; gap: 20px; align-items: flex-start; }
+    .totals { flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; font-size: 13px; }
+    .totals .row { display: flex; justify-content: space-between; padding: 7px 14px; border-bottom: 1px solid #f1f5f9; }
+    .totals .row:last-child { border-bottom: none; }
+    .totals .row.highlight { background: #eff6ff; font-weight: 700; font-size: 14px; color: #1e40af; }
+    .totals .row.debt { background: #fff7ed; font-weight: 700; color: #c2410c; }
+    .qr-box { text-align: center; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; min-width: 148px; }
+    .qr-box img { width: 128px; height: 128px; display: block; margin: 0 auto 6px; }
+    .qr-box p { font-size: 10px; color: #6b7280; line-height: 1.4; }
+    .qr-box strong { color: #1e40af; font-size: 11px; }
+
+    /* FOOTER */
+    .footer { margin-top: 18px; text-align: center; font-size: 11px; color: #9ca3af; border-top: 1px dashed #d1d5db; padding-top: 10px; }
+  </style>
+</head>
+<body>
+  <!-- HEADER: Logo + Thông tin nhà thuốc -->
+  <div class="header">
+    <img src="public/logo.png" alt="Logo" class="logo" />
+    <div class="pharmacy-info">
+      <h1>CÔNG TY TRÁCH NHIỆM HỮU HẠN DƯỢC PHẨM ĐẠT PHARMA</h1>
+      <p>📍 Địa chỉ: 170 YÊN LÃNG</p>
+      <p>📞 Điện thoại: 0797938048 &nbsp;|&nbsp; 📧 Email: TUANDAT8048@GMAIL.COM</p>
+      <p>🏥 Giấy phép kinh doanh: HCM-0077/ĐĐKD</p>
+    </div>
+  </div>
+
+  <!-- TIÊU ĐỀ PHIẾU -->
+  <div class="doc-title">
+    <h2>Phiếu Xuất Kho</h2>
+    <p>Số phiếu: #${selectedDonHang.madonhang} &nbsp;·&nbsp; Ngày in: ${ngayIn}</p>
+  </div>
+
+  <!-- THÔNG TIN ĐƠN HÀNG -->
+  <div class="info-grid">
+    <span class="label">Khách hàng:</span>
+    <span class="value">${khachHang?.tendoitac || selectedDonHang.tendoitac || "---"}</span>
+
+    <span class="label">Điện thoại:</span>
+    <span class="value">${khachHang?.sodienthoai || "---"}</span>
+
+    <span class="label">Địa chỉ:</span>
+    <span class="value">${khachHang?.diachi || "---"}</span>
+
+    <span class="label">Ngày tạo đơn:</span>
+    <span class="value">${new Date(selectedDonHang.ngaytao).toLocaleDateString("vi-VN")}</span>
+
+    <span class="label">Mã vận đơn (Tracking):</span>
+    <span class="value">${selectedDonHang.mavandon3pl || "---"}</span>
+
+    <span class="label">Ghi chú:</span>
+    <span class="value">${selectedDonHang.ghi_chu && selectedDonHang.ghi_chu.trim() ? selectedDonHang.ghi_chu.trim() : "<em style='color:#9ca3af;'>Không có ghi chú</em>"}</span>
+  </div>
+
+  <!-- BẢNG HÀNG HÓA -->
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align:center; width:36px;">STT</th>
+        <th style="text-align:left;">Tên thuốc</th>
+        <th style="text-align:left; width:90px;">Số lô</th>
+        <th style="text-align:center; width:50px;">SL</th>
+        <th style="text-align:right; width:100px;">Đơn giá</th>
+        <th style="text-align:center; width:50px;">Tỷ lệ CK</th>
+        <th style="text-align:right; width:110px;">Thành tiền</th>
+      </tr>
+    </thead>
+    <tbody>${tableRows}</tbody>
+    <tfoot>
+      <tr>
+        <td colspan="6" style="text-align:right; padding-right:12px;">Tổng cộng:</td>
+        <td style="text-align:right; color:#1e40af;">${tongTien.toLocaleString("vi-VN")}đ</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- TỔNG KẾT + QR -->
+  <div class="bottom-section">
+    <div class="totals">
+      <div class="row">
+        <span>Tổng tiền hàng</span>
+        <span>${tongTien.toLocaleString("vi-VN")}đ</span>
+      </div>
+      ${chietKhau > 0 ? `<div class="row"><span>Chiết khấu đơn hàng</span><span style="color:#f97316;">- ${chietKhau.toLocaleString("vi-VN")}đ</span></div>` : ""}
+      <div class="row highlight">
+        <span>Khách cần trả</span>
+        <span>${canTra.toLocaleString("vi-VN")}đ</span>
+      </div>
+      <div class="row">
+        <span>Đã thanh toán</span>
+        <span style="color:#16a34a;">${daTra.toLocaleString("vi-VN")}đ</span>
+      </div>
+      ${conNo > 0 ? `<div class="row debt"><span>⚠ Còn nợ</span><span>${conNo.toLocaleString("vi-VN")}đ</span></div>` : `<div class="row" style="color:#16a34a;font-weight:600;"><span>✓ Đã thanh toán đủ</span><span>0đ</span></div>`}
+    </div>
+
+    <div class="qr-box">
+      <img src="${vietQrUrl}" alt="QR Thanh toán" onerror="this.style.display='none'"/>
+      <p>Quét mã để thanh toán</p>
+      <strong>Thanh toan don hang XUAT${selectedDonHang.madonhang}</strong>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Phiếu được tạo tự động bởi hệ thống PharmaManager · ${ngayIn}
+  </div>
+
+  <script>window.onload = function(){ window.print(); window.onafterprint = function(){ window.close(); }; }</script>
+</body>
+</html>`;
+
+    const printWindow = window.open("", "_blank", "width=900,height=700");
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+    }
   };
+
 
 
   useEffect(() => {
@@ -800,6 +1025,21 @@ export default function PhieuXuatView() {
                 </div>
               </div>
 
+              <div>
+                <label className='block text-xs font-medium text-gray-500 mb-1'>
+                  GHI CHÚ
+                </label>
+                <textarea
+                  value={masterForm.ghi_chu}
+                  onChange={(e) =>
+                    setMasterForm({ ...masterForm, ghi_chu: e.target.value })
+                  }
+                  rows={2}
+                  placeholder='Ghi chú thêm cho đơn hàng...'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none resize-none text-sm'
+                />
+              </div>
+
               <div className='pt-4 border-t border-dashed space-y-3'>
                 <div className='flex justify-between items-center text-sm'>
                   <span className='text-gray-500 font-bold uppercase text-[10px]'>
@@ -839,31 +1079,70 @@ export default function PhieuXuatView() {
                   </span>
                 </div>
 
-                <div>
-                  <label className='block text-[10px] font-bold text-blue-600 mb-1 uppercase'>
-                    Đã thanh toán (VND):
-                  </label>
-                  <input
-                    value={masterForm.tiendathanhtoan}
-                    onChange={(e) =>
-                      setMasterForm({
-                        ...masterForm,
-                        tiendathanhtoan: Number(e.target.value),
-                      })
-                    }
-                    type='number'
-                    min='0'
-                    className='w-full px-3 py-2 border-2 border-blue-300 bg-blue-50 text-blue-700 rounded-lg text-right font-bold outline-none focus:ring-2 focus:ring-blue-500'
-                  />
-                </div>
+                {/* PANEL THANH TOÁN THÔNG MINH */}
+                <div className='border border-blue-200 rounded-xl overflow-hidden'>
+                  <div className='bg-blue-600 px-3 py-2'>
+                    <p className='text-white font-bold text-[11px] uppercase tracking-wide'>💳 Hình thức thanh toán</p>
+                  </div>
+                  <div className='p-3 space-y-2 bg-blue-50'>
+                    {/* Lựa chọn */}
+                    {([
+                      { key: "roi", label: "✅ Thanh toán RỒI", desc: "Khách trả đủ" },
+                      { key: "no", label: "📋 Ghi NỢ", desc: "Chưa trả đồng nào" },
+                      { key: "tratruoc", label: "💵 Trả trước 1 phần", desc: "Nhập số tiền đã trả" },
+                    ] as const).map((opt) => (
+                      <label
+                        key={opt.key}
+                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer border transition ${
+                          hinhThucThanhToan === opt.key
+                            ? "bg-white border-blue-400 shadow-sm"
+                            : "border-transparent hover:bg-white/60"
+                        }`}
+                      >
+                        <input
+                          type='radio'
+                          name='hinhthuc'
+                          value={opt.key}
+                          checked={hinhThucThanhToan === opt.key}
+                          onChange={() => setHinhThucThanhToan(opt.key)}
+                          className='accent-blue-600'
+                        />
+                        <div>
+                          <p className='text-xs font-bold text-gray-800'>{opt.label}</p>
+                          <p className='text-[10px] text-gray-500'>{opt.desc}</p>
+                        </div>
+                      </label>
+                    ))}
 
-                <div className='flex justify-between items-center text-sm bg-gray-100 p-2 rounded-lg border border-gray-200'>
-                  <span className='text-gray-600 font-bold text-[11px] uppercase'>
-                    Nợ đơn này:
-                  </span>
-                  <span className='font-black text-gray-800'>
-                    {formatCurrency(tienConNo)}
-                  </span>
+                    {/* Ô nhập tiền nếu chọn trả trước */}
+                    {hinhThucThanhToan === "tratruoc" && (
+                      <div className='pt-1'>
+                        <label className='block text-[10px] font-bold text-blue-700 mb-1 uppercase'>Số tiền đã trả (VND):</label>
+                        <input
+                          type='number'
+                          min='0'
+                          max={tongGiaTriDon}
+                          value={soTienDaTra}
+                          onChange={(e) => setSoTienDaTra(Number(e.target.value))}
+                          className='w-full px-3 py-2 border-2 border-blue-300 bg-white text-blue-700 rounded-lg text-right font-bold outline-none focus:ring-2 focus:ring-blue-500'
+                        />
+                      </div>
+                    )}
+
+                    {/* Preview nợ còn lại */}
+                    <div className='flex justify-between items-center pt-2 border-t border-blue-200 mt-1'>
+                      <span className='text-[11px] font-bold text-gray-600 uppercase'>Còn nợ đơn này:</span>
+                      <span className={`font-black text-sm ${
+                        hinhThucThanhToan === "roi" ? "text-green-600" : "text-red-600"
+                      }`}>
+                        {hinhThucThanhToan === "roi"
+                          ? "0đ ✓"
+                          : hinhThucThanhToan === "no"
+                          ? formatCurrency(tongGiaTriDon)
+                          : formatCurrency(Math.max(0, tongGiaTriDon - soTienDaTra))}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -903,6 +1182,8 @@ export default function PhieuXuatView() {
                       <th className='p-3 min-w-[150px] text-right text-red-600 font-bold'>
                         Đơn Giá
                       </th>
+                      <th className='p-3 min-w-[90px] text-center font-bold text-orange-600'>CK%</th>
+                      <th className='p-3 min-w-[140px] text-right font-bold text-green-700'>Thành Tiền</th>
                       <th className='p-3 w-10'></th>
                     </tr>
                   </thead>
@@ -967,6 +1248,10 @@ export default function PhieuXuatView() {
                     {dh.trangthai === "choduyet" ? (
                       <span className='bg-yellow-100 text-yellow-700 px-2 py-1 rounded border text-xs font-bold'>
                         Chờ duyệt xuất
+                      </span>
+                    ) : dh.trangthai === "huy" ? (
+                      <span className='bg-red-100 text-red-700 px-2 py-1 rounded border text-xs font-bold'>
+                        Đã bị từ chối
                       </span>
                     ) : (
                       <span className='bg-blue-100 text-blue-700 px-2 py-1 rounded border text-xs font-bold'>

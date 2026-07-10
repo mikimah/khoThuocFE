@@ -120,15 +120,20 @@ export default function DoiTacView() {
         </td>
         <td className='p-4 text-sm'>
           {dt.loaidoitac === "KhachHang" && (
-            <div
-              className={
-                dt.tongnohientai > 0
-                  ? "font-medium text-red-600"
-                  : "font-medium text-gray-500"
-              }
-            >
-              Công Nợ của khách hàng: {formatCurrency(dt.tongnohientai)}
-            </div>
+            <>
+              <div
+                className={
+                  dt.tongnohientai > 0
+                    ? "font-medium text-red-600"
+                    : "font-medium text-gray-500"
+                }
+              >
+                Công Nợ khách hàng: {formatCurrency(dt.tongnohientai)}
+              </div>
+              <div className="font-medium text-blue-600 mt-1">
+                Hạn mức nợ: {dt.hanmucno > 0 ? formatCurrency(dt.hanmucno) : "Không giới hạn"}
+              </div>
+            </>
           )}
           {dt.loaidoitac === "NhaCungCap" && (
             <div

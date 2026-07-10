@@ -1,11 +1,15 @@
 import { useState, useEffect, useMemo } from "react";
 import api from "../services/api";
+import { useAuthStore } from "../context/useAuthStore";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import ReloadBtn from "../components/common/reloadBtn";
 import { Search } from "lucide-react";
 import { showSuccess, showError } from "../utils/notify";
 
 export default function LichSuDonHangView() {
+  const authStore = useAuthStore();
+  const role = authStore.user?.vaitro?.toLowerCase() || "";
+  const isAdmin = role === "admin";
   const [danhSachDonHang, setDanhSachDonHang] = useState<any[]>([]);
   const [danhSachDonVi, setDanhSachDonVi] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,8 +28,9 @@ export default function LichSuDonHangView() {
   const getData = async () => {
     setIsLoading(true);
     try {
+      const endpoint = isAdmin ? "/donhang" : "/donhang/cua-toi";
       const [resDH, resDV]: any = await Promise.all([
-        api.get("/donhang"),
+        api.get(endpoint),
         api.get("/donvitinh"),
       ]);
       setDanhSachDonHang(resDH.data || []);

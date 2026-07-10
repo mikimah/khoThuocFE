@@ -285,7 +285,8 @@ export default function TaiKhoanView() {
                   }
                   className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white'
                 >
-                  <option value='NhanVien'>Nhân viên kho</option>
+                  <option value='Kho'>Nhân viên Kho</option>
+                  <option value='Sales'>Nhân viên Sales</option>
                   <option value='Admin'>Quản trị viên (Admin)</option>
                 </select>
               </div>
