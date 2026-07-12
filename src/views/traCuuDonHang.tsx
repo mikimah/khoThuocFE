@@ -21,7 +21,6 @@ interface OrderData {
 }
 
 export default function TraCuuDonHangView() {
-  const [sodienthoai, setSodienthoai] = useState("");
   const [mavandon3pl, setMavandon3pl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -30,8 +29,8 @@ export default function TraCuuDonHangView() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!sodienthoai.trim() && !mavandon3pl.trim()) {
-      setErrorMsg("Vui lòng nhập Số điện thoại hoặc Mã vận đơn!");
+    if (!mavandon3pl.trim()) {
+      setErrorMsg("Vui lòng nhập Mã vận đơn!");
       return;
     }
 
@@ -41,11 +40,11 @@ export default function TraCuuDonHangView() {
 
     try {
       const response = await api.post(`/donhang/tracuu-congkhai`, {
-        sodienthoai: sodienthoai.trim() || null,
         mavandon3pl: mavandon3pl.trim() || null,
       });
 
-      setOrderData(response.data.data);
+      // Lấy data từ response.data
+      setOrderData(response.data);
     } catch (error: any) {
       setErrorMsg(
         error.response?.data?.message ||
@@ -71,7 +70,7 @@ export default function TraCuuDonHangView() {
     const amount = Math.round(tienConNo);
     const addInfo = `Thanh toan don hang XUAT${orderData.madonhang}`;
     const base =
-      import.meta.env.VITE_VIETQR_API || "https://api.vietqr.io/v2/qr/static?type=pay&account=0351000778617";
+      import.meta.env.VITE_VIETQR || "https://img.vietqr.io/image/970436-1042328265-compact.jpg?accountName=TRAN%20TUAN%20DAT";
     return `${base}&amount=${amount}&addInfo=${encodeURIComponent(addInfo)}`;
   }, [orderData, tienConNo]);
 
@@ -109,7 +108,7 @@ export default function TraCuuDonHangView() {
             </div>
           )}
 
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-5'>
+          <div className='flex flex-col gap-3'>
             <div>
               <label className='block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5'>
                 Mã vận đơn (Tracking)
@@ -119,19 +118,7 @@ export default function TraCuuDonHangView() {
                 onChange={(e) => setMavandon3pl(e.target.value)}
                 type='text'
                 placeholder='VD: VNPOST-...'
-                className='w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all font-semibold text-gray-700'
-              />
-            </div>
-            <div>
-              <label className='block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5'>
-                Số điện thoại đặt hàng
-              </label>
-              <input
-                value={sodienthoai}
-                onChange={(e) => setSodienthoai(e.target.value)}
-                type='tel'
-                placeholder='09xxxx...'
-                className='w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all font-semibold text-gray-700'
+                className='w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all font-semibold text-gray-700 text-center text-lg'
               />
             </div>
           </div>
@@ -286,9 +273,7 @@ export default function TraCuuDonHangView() {
                   <thead className='bg-gray-50 border-b'>
                     <tr className='text-xs text-gray-500 uppercase'>
                       <th className='p-4 font-bold'>Sản phẩm</th>
-                      <th className='p-4 font-bold text-center'>Số lượng</th>
-                      <th className='p-4 font-bold text-right'>Đơn giá</th>
-                      <th className='p-4 font-bold text-right'>Thành tiền</th>
+                      <th className='p-4 font-bold text-right'>Số lượng</th>
                     </tr>
                   </thead>
                   <tbody className='divide-y divide-gray-100'>
@@ -297,14 +282,8 @@ export default function TraCuuDonHangView() {
                         <td className='p-4 font-medium text-gray-800'>
                           {item.tenthuoc}
                         </td>
-                        <td className='p-4 text-center text-blue-600 font-bold'>
+                        <td className='p-4 text-right text-blue-600 font-bold'>
                           {item.soluongthucte}
-                        </td>
-                        <td className='p-4 text-right text-gray-500'>
-                          {formatCurrency(item.dongia)}
-                        </td>
-                        <td className='p-4 text-right font-bold text-gray-800'>
-                          {formatCurrency(item.thanhtien)}
                         </td>
                       </tr>
                     ))}
@@ -325,10 +304,10 @@ export default function TraCuuDonHangView() {
                     {formatCurrency(orderData.tonggiatri)}
                   </span>
                 </div>
-                <div className='flex justify-between text-sm'>
-                  <span className='text-gray-500'>Đã thanh toán</span>
-                  <span className='font-bold text-green-600'>
-                    - {formatCurrency(orderData.tiendathanhtoan)}
+                <div className='flex justify-between items-center text-sm mb-2'>
+                  <span className='text-gray-500 font-bold'>Đã thanh toán</span>
+                  <span className='font-bold text-gray-800'>
+                    {formatCurrency(Number(orderData.tiendathanhtoan || 0))}
                   </span>
                 </div>
                 <div className='flex justify-between items-center pt-3 border-t border-gray-200'>
