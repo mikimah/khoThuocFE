@@ -456,7 +456,7 @@ export default function PhieuXuatView() {
   const khachHangDuocChon = useMemo(() => {
     if (!masterForm.madoitac) return null;
     return (
-      danhSachKhachHang.find((k: any) => k.madoitac === masterForm.madoitac) ||
+      danhSachKhachHang.find((k: any) => String(k.madoitac) === String(masterForm.madoitac)) ||
       null
     );
   }, [masterForm.madoitac, danhSachKhachHang]);
@@ -487,38 +487,25 @@ export default function PhieuXuatView() {
 
   const mucChietKhau = useMemo(() => {
     const kh = khachHangDuocChon;
-    if (!kh) return { phanTram: 0, tenHang: "Khách Mới" };
+    if (!kh) return { tenHang: "Khách Mới" };
 
     if (kh.solangiaodich_thanhcong >= 10)
-      return { phanTram: 5, tenHang: "Khách VIP" };
+      return { tenHang: "Khách VIP" };
     if (kh.solangiaodich_thanhcong >= 5)
-      return { phanTram: 2, tenHang: "Khách Thân Thiết" };
-    return { phanTram: 0, tenHang: "Khách Thường" };
+      return { tenHang: "Khách Thân Thiết" };
+    return { tenHang: "Khách Thường" };
   }, [khachHangDuocChon]);
-
-  useEffect(() => {
-    if (mucChietKhau.phanTram > 0) {
-      setMasterForm((prev) => ({
-        ...prev,
-        tienchietkhau: (tongTienHang * mucChietKhau.phanTram) / 100,
-      }));
-    } else {
-      setMasterForm((prev) => ({
-        ...prev,
-        tienchietkhau: 0,
-      }));
-    }
-  }, [tongTienHang, mucChietKhau]);
 
   const tongGiaTriDon = useMemo(
     () => Math.max(0, tongTienHang - Number(masterForm.tienchietkhau)),
     [tongTienHang, masterForm.tienchietkhau],
   );
 
-  const tienConNo = useMemo(
-    () => Math.max(0, tongGiaTriDon - Number(masterForm.tiendathanhtoan)),
-    [tongGiaTriDon, masterForm.tiendathanhtoan],
-  );
+  const tienConNo = useMemo(() => {
+    if (hinhThucThanhToan === "roi") return 0;
+    if (hinhThucThanhToan === "no") return tongGiaTriDon;
+    return Math.max(0, tongGiaTriDon - Number(soTienDaTra));
+  }, [tongGiaTriDon, hinhThucThanhToan, soTienDaTra]);
 
   const tongNoDuKien = useMemo(() => {
     if (!khachHangDuocChon) return 0;
@@ -954,13 +941,7 @@ export default function PhieuXuatView() {
                     <span className='text-gray-500 font-medium'>
                       Hạng thành viên:
                     </span>
-                    <span
-                      className={`font-bold px-2 py-0.5 rounded text-white ${
-                        mucChietKhau.phanTram > 0
-                          ? "bg-orange-500"
-                          : "bg-gray-400"
-                      }`}
-                    >
+                    <span className="font-bold px-2 py-0.5 rounded text-white bg-blue-500">
                       {mucChietKhau.tenHang}
                     </span>
                   </div>
@@ -1054,11 +1035,6 @@ export default function PhieuXuatView() {
                     <label className='text-[10px] font-bold text-gray-500 uppercase'>
                       Chiết khấu (VND):
                     </label>
-                    {mucChietKhau.phanTram > 0 && (
-                      <span className='text-[10px] text-orange-600 font-bold'>
-                        (-{mucChietKhau.phanTram}%)
-                      </span>
-                    )}
                   </div>
                   <input
                     value={masterForm.tienchietkhau}
