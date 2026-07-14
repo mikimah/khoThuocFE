@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import api from "../services/api";
+import { Html5QrcodeScanner, Html5QrcodeScanType } from "html5-qrcode";
 import { useAuthStore } from "../context/useAuthStore";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
 import { showSuccess, showError } from "../utils/notify";
+import { ScanQrCode, X } from "lucide-react";
 
 export default function PhieuNhapView() {
   const authStore = useAuthStore();
@@ -15,6 +17,99 @@ export default function PhieuNhapView() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+
+  const [showQrScanner, setShowQrScanner] = useState(false);
+  
+  useEffect(() => {
+    const element = document.getElementById("reader");
+    if (!element) return;
+    const scanner = new Html5QrcodeScanner(
+      "reader",
+      {
+        // 1. Cấu hình cơ bản của em
+        fps: 10,
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          // Vùng quét chiếm 80% chiều rộng khung camera, tối thiểu là 200px
+          const minEdgePercentage = 0.7;
+          const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+          const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+
+          return {
+            width: qrboxSize < 200 ? 200 : qrboxSize,
+            height: qrboxSize < 200 ? 200 : qrboxSize,
+          };
+        },
+
+        // 2. Ép dùng camera sau của điện thoại để quét mã dễ hơn
+        videoConstraints: {
+          facingMode: "environment",
+        },
+
+        // 3. Chỉ cho phép quét qua Camera trực tiếp (Bỏ tính năng upload file ảnh mặc định của UI)
+
+        // 4. Bật các tính năng UX bổ trợ
+        rememberLastUsedCamera: false, // Nhớ camera lần trước chọn
+        showTorchButtonIfSupported: true, // Hiện nút bật đèn pin khi kho tối
+        disableFlip: true, // Không lật ngược hình ảnh mã QR
+      },
+      false,
+    );
+
+    scanner.render(success, error);
+
+    function success(result: any) {
+      // 1. Dừng quét an toàn
+      scanner.clear().catch((err) => console.error("Lỗi đóng camera:", err));
+      setShowQrScanner(false);
+
+      // 2. Tạo một biến để chứa mảng sau khi giải mã chữ -> mảng
+      let parsedData: any[] = [];
+
+      try {
+        // 🛠️ BƯỚC THẦN THÁNH: Chuyển đổi chuỗi chữ quét được thành mảng/object thực tế
+        const decoded =
+          typeof result === "string" ? JSON.parse(result) : result;
+
+        // Nếu kết quả trả về đúng là mảng, gán vào parsedData
+        if (Array.isArray(decoded)) {
+          parsedData = decoded;
+        } else {
+          // Trường hợp quét ra 1 object đơn lẻ, ta tự bọc nó vào mảng để xử lý chung luôn
+          parsedData = [decoded];
+        }
+      } catch (error) {
+        console.error("Lỗi parse JSON:", error);
+        showError("Mã QR không đúng định dạng dữ liệu hệ thống yêu cầu!");
+        return; // Dừng hàm nếu mã QR bị lỗi cấu trúc chữ
+      }
+
+      // 3. Tiến hành map và cập nhật vào State chi tiết phiếu nhập
+      if (parsedData.length > 0) {
+        showSuccess(
+          `Quét thành công! Đã thêm ${parsedData.length} mục vào danh sách.`,
+        );
+
+        const newItems = parsedData.map((item) => ({
+          mathuoc: item.mathuoc || "",
+          madonvitinh: item.madonvitinh || "",
+          solo: item.solo || "",
+          hansudung: item.hansudung || "",
+          ngaysanxuat: item.ngaysanxuat || "",
+          soluongthucte: item.soluongthucte || 1,
+          soluongyeucau: item.soluongyeucau || 1,
+          gianhap: item.gianhap || 0,
+        }));
+
+        // Cập nhật State 1 lần duy nhất
+        setChiTietData((prevData) => [...prevData, ...newItems]);
+      }
+    }
+
+    function error(errorMessage: any) {
+      showError("Quét QR code thất bại!");
+      console.warn("QR code scan error:", errorMessage);
+    }
+  }, [showQrScanner]);
 
   const [masterForm, setMasterForm] = useState({
     madoitac: "",
@@ -280,7 +375,7 @@ export default function PhieuNhapView() {
       setSelectedMaster(resMaster.data || dh);
       setSelectedDetails(resDetails.data || []);
     } catch (error: any) {
-      console.log("Lỗi tải chi tiết: " + (error.message || "Lỗi hệ thống"));
+      console.warn("Lỗi tải chi tiết: " + (error.message || "Lỗi hệ thống"));
       showError("Không thể tải chi tiết đơn hàng");
     } finally {
       setIsLoadingDetail(false);
@@ -300,7 +395,7 @@ export default function PhieuNhapView() {
       {
         mathuoc: "",
         madonvitinh: "",
-        solo: "", 
+        solo: "",
         hansudung: "",
         ngaysanxuat: "",
         soluongyeucau: 1,
@@ -399,23 +494,24 @@ export default function PhieuNhapView() {
 
     for (const item of chiTietData) {
       const thuoc: any = danhSachThuoc.find(
-        (t: any) => t.mathuoc === String(item.mathuoc) || t.mathuoc === item.mathuoc,
+        (t: any) =>
+          t.mathuoc === String(item.mathuoc) || t.mathuoc === item.mathuoc,
       );
-      
+
       const sodangky = String(thuoc?.sodangky || "").toUpperCase();
       const hsd = new Date(item.hansudung);
       const nsx = new Date(item.ngaysanxuat);
 
       if (nsx >= hsd) {
         showError(
-          `LỖI: Tại mặt hàng [${thuoc?.tenthuoc || 'Không rõ'}], Ngày sản xuất phải diễn ra TRƯỚC Hạn sử dụng!`,
+          `LỖI: Tại mặt hàng [${thuoc?.tenthuoc || "Không rõ"}], Ngày sản xuất phải diễn ra TRƯỚC Hạn sử dụng!`,
         );
         return;
       }
 
       if (hsd <= ngayNhap) {
         showError(
-          `LỖI: Thuốc [${thuoc?.tenthuoc || 'Không rõ'}] đã hết hạn sử dụng. Không được phép nhập kho!`,
+          `LỖI: Thuốc [${thuoc?.tenthuoc || "Không rõ"}] đã hết hạn sử dụng. Không được phép nhập kho!`,
         );
         return;
       }
@@ -430,7 +526,7 @@ export default function PhieuNhapView() {
 
         if (thangTuoiTho <= 36 && thangTuNgaySanXuat > 6) {
           showError(
-            `LỖI GSP: Thuốc nhập khẩu [${thuoc?.tenthuoc || 'Không rõ'}] có tuổi thọ ${thangTuoiTho} tháng.\nQuy định: Không được nhập kho khi đã quá 6 tháng kể từ Ngày Sản Xuất (Lô này đã qua ${thangTuNgaySanXuat} tháng)!`,
+            `LỖI GSP: Thuốc nhập khẩu [${thuoc?.tenthuoc || "Không rõ"}] có tuổi thọ ${thangTuoiTho} tháng.\nQuy định: Không được nhập kho khi đã quá 6 tháng kể từ Ngày Sản Xuất (Lô này đã qua ${thangTuNgaySanXuat} tháng)!`,
           );
           return;
         }
@@ -496,9 +592,13 @@ export default function PhieuNhapView() {
     getData();
   }, []);
 
+  const handleScanQRCode = () => {
+    // Implement QR code scanning logic here
+  };
+
   if (showForm) {
     return (
-      <div className='bg-gray-50 -m-6 p-6 min-h-screen'>
+      <div className='bg-gray-50 -m-6 p-6 min-h-screen relative'>
         <div className='max-w-[1450px] mx-auto'>
           <div className='flex justify-between items-center mb-6'>
             <div className='flex items-center gap-4'>
@@ -667,13 +767,25 @@ export default function PhieuNhapView() {
                 <h3 className='font-bold text-gray-700 uppercase text-sm'>
                   Chi tiết hàng nhập (Vốn)
                 </h3>
-                <button
-                  onClick={themDongChiTiet}
-                  type='button'
-                  className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-bold border border-blue-200 transition'
-                >
-                  + Thêm dòng
-                </button>
+                <div className='flex items-center justify-center gap-2'>
+                  <button
+                    onClick={handleScanQRCode}
+                    type='button'
+                    className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 p-2 rounded-lg font-bold border border-blue-200 transition'
+                  >
+                    <ScanQrCode
+                      size={20}
+                      onClick={() => setShowQrScanner(true)}
+                    />
+                  </button>
+                  <button
+                    onClick={themDongChiTiet}
+                    type='button'
+                    className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-bold border border-blue-200 transition'
+                  >
+                    + Thêm dòng
+                  </button>
+                </div>
               </div>
 
               <div className='overflow-x-auto min-h-[400px]'>
@@ -718,6 +830,20 @@ export default function PhieuNhapView() {
             </div>
           </div>
         </div>
+
+        {showQrScanner && (
+          <div className='z-20 flex items-start justify-center absolute top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-black/20'>
+            <div
+              id='reader'
+              className={`w-[60%] mt-5 p-5 h-auto bg-white flex flex-col justify-center items-center `}
+            ></div>
+            <X
+              size={40}
+              className='absolute top-4 bg-white rounded-full right-4 cursor-pointer'
+              onClick={() => setShowQrScanner(false)}
+            />
+          </div>
+        )}
       </div>
     );
   }
