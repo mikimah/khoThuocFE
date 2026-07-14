@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* Ẩn icon cái điện thoại quét mã bên góc trái */
+.readerQr #reader__scan_region img {
+  margin: 100px;
+}
+
