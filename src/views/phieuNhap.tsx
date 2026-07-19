@@ -1,8 +1,18 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import api from "../services/api";
-import { Html5QrcodeScanner, Html5QrcodeScanType } from "html5-qrcode";
+import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import { useAuthStore } from "../context/useAuthStore";
-import { formatDate, formatCurrency } from "../utils/customFunction";
+import {
+  formatDate,
+  formatCurrency,
+  extractLeadingNum,
+  extractLoCode,
+  extractDate,
+  extractPrice,
+  convertYYMMDDToDate,
+  addYearsToDate,
+  parseMoney
+} from "../utils/customFunction";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
 import { showSuccess, showError } from "../utils/notify";
@@ -19,38 +29,42 @@ export default function PhieuNhapView() {
   const [showForm, setShowForm] = useState(false);
 
   const [showQrScanner, setShowQrScanner] = useState(false);
-  
+
   useEffect(() => {
     const element = document.getElementById("reader");
     if (!element) return;
     const scanner = new Html5QrcodeScanner(
       "reader",
       {
-        // 1. Cấu hình cơ bản của em
         fps: 10,
+
+        // 1. 🛠️ Cấu hình lại qrbox thành HÌNH CHỮ NHẬT để dễ quét Barcode nằm ngang hơn
         qrbox: (viewfinderWidth, viewfinderHeight) => {
-          // Vùng quét chiếm 80% chiều rộng khung camera, tối thiểu là 200px
-          const minEdgePercentage = 0.7;
-          const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
-          const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+          // Chiều rộng vùng quét chiếm 40% khung camera
+          const width = Math.floor(viewfinderWidth * 0.8);
+          // Chiều cao vùng quét dẹt lại (chỉ chiếm khoảng 30% chiều cao khung camera hoặc cố định tầm 100px - 150px)
+          const height = Math.floor(viewfinderHeight * 0.3);
 
           return {
-            width: qrboxSize < 200 ? 200 : qrboxSize,
-            height: qrboxSize < 200 ? 200 : qrboxSize,
+            width: width < 250 ? 250 : width, // Đảm bảo chiều rộng tối thiểu đủ bao quát mã vạch
+            height: height < 100 ? 100 : height,
           };
         },
 
-        // 2. Ép dùng camera sau của điện thoại để quét mã dễ hơn
         videoConstraints: {
           facingMode: "environment",
         },
 
-        // 3. Chỉ cho phép quét qua Camera trực tiếp (Bỏ tính năng upload file ảnh mặc định của UI)
+        // 2. 🛠️ BƯỚC QUAN TRỌNG: Khai báo định dạng Barcode muốn quét
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.CODE_128, // Chuẩn mã vạch quản lý kho nội bộ cực tốt
+          // Html5QrcodeSupportedFormats.EAN_13, // Chuẩn mã vạch thương mại có sẵn trên hộp thuốc
+          // Html5QrcodeSupportedFormats.QR_CODE, // Chuẩn mã vạch QR code
+        ],
 
-        // 4. Bật các tính năng UX bổ trợ
-        rememberLastUsedCamera: false, // Nhớ camera lần trước chọn
-        showTorchButtonIfSupported: true, // Hiện nút bật đèn pin khi kho tối
-        disableFlip: true, // Không lật ngược hình ảnh mã QR
+        rememberLastUsedCamera: false,
+        showTorchButtonIfSupported: true,
+        disableFlip: true,
       },
       false,
     );
@@ -63,51 +77,50 @@ export default function PhieuNhapView() {
       setShowQrScanner(false);
 
       // 2. Tạo một biến để chứa mảng sau khi giải mã chữ -> mảng
-      let parsedData: any[] = [];
+      const decodedString = result || "";
+      const id = extractLeadingNum(decodedString);
+      const loCode = extractLoCode(decodedString);
+      const extractedDate = extractDate(decodedString);
+      const dateS = convertYYMMDDToDate(extractedDate);
+      const yearsAdd = dateS.charAt(Number(extractedDate.slice(-1)));
+      const dateE = addYearsToDate(dateS, Number(yearsAdd) || 0);
+      const price = parseMoney(extractPrice(decodedString));
 
-      try {
-        // 🛠️ BƯỚC THẦN THÁNH: Chuyển đổi chuỗi chữ quét được thành mảng/object thực tế
-        const decoded =
-          typeof result === "string" ? JSON.parse(result) : result;
-
-        // Nếu kết quả trả về đúng là mảng, gán vào parsedData
-        if (Array.isArray(decoded)) {
-          parsedData = decoded;
-        } else {
-          // Trường hợp quét ra 1 object đơn lẻ, ta tự bọc nó vào mảng để xử lý chung luôn
-          parsedData = [decoded];
-        }
-      } catch (error) {
-        console.error("Lỗi parse JSON:", error);
-        showError("Mã QR không đúng định dạng dữ liệu hệ thống yêu cầu!");
-        return; // Dừng hàm nếu mã QR bị lỗi cấu trúc chữ
-      }
+      console.log({
+        id,
+        loCode,
+        extractedDate,
+        dateS,
+        yearsAdd,
+        dateE,
+        price,
+      });
 
       // 3. Tiến hành map và cập nhật vào State chi tiết phiếu nhập
-      if (parsedData.length > 0) {
-        showSuccess(
-          `Quét thành công! Đã thêm ${parsedData.length} mục vào danh sách.`,
-        );
+      try {
+        const newItems = {
+          mathuoc: id || "",
+          madonvitinh: "",
+          solo: loCode || "",
+          ngaysanxuat: dateS || "",
+          hansudung: dateE || "",
+          soluongthucte: 1,
+          soluongyeucau: 1,
+          gianhap: price || 0,
+        };
 
-        const newItems = parsedData.map((item) => ({
-          mathuoc: item.mathuoc || "",
-          madonvitinh: item.madonvitinh || "",
-          solo: item.solo || "",
-          hansudung: item.hansudung || "",
-          ngaysanxuat: item.ngaysanxuat || "",
-          soluongthucte: item.soluongthucte || 1,
-          soluongyeucau: item.soluongyeucau || 1,
-          gianhap: item.gianhap || 0,
-        }));
+        console.log(newItems);
 
         // Cập nhật State 1 lần duy nhất
-        setChiTietData((prevData) => [...prevData, ...newItems]);
+        setChiTietData((prevData) => [...prevData,newItems]);
+      } catch (e) {
+        console.error("Lỗi khi thêm mục vào danh sách:", e);
+        showError("Lỗi khi thêm mục vào danh sách. Vui lòng thử lại.");
       }
     }
 
     function error(errorMessage: any) {
-      showError("Quét QR code thất bại!");
-      console.warn("QR code scan error:", errorMessage);
+      console.warn("Code scan error:", errorMessage);
     }
   }, [showQrScanner]);
 
