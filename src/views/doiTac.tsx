@@ -6,10 +6,11 @@ import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
 import EditBtn from "../components/common/editBtn";
+import FilterNum from "../components/common/filterNum";
 import DeleteBtn from "../components/common/deleteBtn";
 import ConfirmBox from "../components/common/confirmBox";
 import { showSuccess, showError } from "../utils/notify";
-import { Phone,Mail } from "lucide-react";
+import { Phone, Mail } from "lucide-react";
 
 export default function DoiTacView() {
   const authStore = useAuthStore();
@@ -17,6 +18,7 @@ export default function DoiTacView() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("TatCa"); // TatCa | NhaCungCap | KhachHang
+  const [filterValue, setFilterValue] = useState("hoptac");
 
   // --- MODAL STATE ---
   const [showModal, setShowModal] = useState(false);
@@ -65,6 +67,12 @@ export default function DoiTacView() {
       filtered = filtered.filter((dt: any) => dt.loaidoitac === activeTab);
     }
 
+    if (filterValue === "hoptac") {
+      filtered = filtered.filter((dt: any) => dt.trangthai === "Dang hop tac");
+    } else if (filterValue === "ngung") {
+      filtered = filtered.filter((dt: any) => dt.trangthai === "Ngung hop tac");
+    }
+
     // 2. Lọc theo ô tìm kiếm
     const query = searchQuery.trim().toLowerCase();
     if (query) {
@@ -76,8 +84,10 @@ export default function DoiTacView() {
       );
     }
 
+
     return filtered;
-  }, [danhSachDoiTac, activeTab, searchQuery]);
+
+  }, [danhSachDoiTac, activeTab, searchQuery, filterValue]);
 
   function renderItems(items: any[]) {
     if (!items || items.length === 0) {
@@ -130,8 +140,11 @@ export default function DoiTacView() {
               >
                 Công Nợ khách hàng: {formatCurrency(dt.tongnohientai)}
               </div>
-              <div className="font-medium text-blue-600 mt-1">
-                Hạn mức nợ: {dt.hanmucno > 0 ? formatCurrency(dt.hanmucno) : "Không giới hạn"}
+              <div className='font-medium text-blue-600 mt-1'>
+                Hạn mức nợ:{" "}
+                {dt.hanmucno > 0
+                  ? formatCurrency(dt.hanmucno)
+                  : "Không giới hạn"}
               </div>
             </>
           )}
@@ -169,11 +182,10 @@ export default function DoiTacView() {
           </span>
         </td>
         <td className='p-4'>
-          <div className='flex gap-3'>
+          <div className='flex gap-3 items-center justify-center'>
             {authStore.isAdmin() && (
               <>
                 <EditBtn func={() => openEditModal(dt)} />
-                <DeleteBtn func={() => setIsDelete(dt.madoitac)} />
               </>
             )}
           </div>
@@ -321,6 +333,16 @@ export default function DoiTacView() {
           {authStore.isAdmin() && (
             <AddBtn func={openAddModal} placeholder='+ Thêm đối tác mới' />
           )}
+          <FilterNum
+            filterValue={filterValue}
+            func={setFilterValue}
+            itemList={[
+              
+              { name: "Hợp tác", value: "hoptac" },
+              { name: "Ngừng hợp tác", value: "ngung" },
+              { name: "Tất cả", value: "tatca" },
+            ]}
+          />
 
           <ReloadBtn func={getData} />
         </div>

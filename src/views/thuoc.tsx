@@ -1,13 +1,14 @@
 import { useAuthStore } from "../context/useAuthStore";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import SearchInput from "../components/common/searchInput";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
+import FilterNum2 from "../components/common/filterNum2";
 import ConfirmBox from "../components/common/confirmBox";
 import EditBtn from "../components/common/editBtn";
 import DeleteBtn from "../components/common/deleteBtn";
 import api from "../services/api";
-import { showSuccess,showError } from "../utils/notify";
+import { showSuccess, showError } from "../utils/notify";
 
 export default function ThuocView() {
   const [isLoading, setIsLoading] = useState(true);
@@ -17,6 +18,9 @@ export default function ThuocView() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDelete, setIsDelete] = useState(null);
   const [tatCaThuoc, setTatCaThuoc] = useState([]);
+  const [filterValue, setFilterValue] = useState("tatca");
+  const [filterValue2, setFilterValue2] = useState("0");
+  const [filterValue3, setFilterValue3] = useState("tatca");
   const authStore = useAuthStore();
 
   const [formData, setFormData] = useState({
@@ -48,12 +52,116 @@ export default function ThuocView() {
   }
 
   // Lọc danh sách theo tìm kiếm
-  const displayedThuoc = tatCaThuoc.filter(
-    (thuoc: any) =>
-      thuoc.tenthuoc.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      String(thuoc.mathuoc).toLowerCase().includes(searchQuery.toLowerCase()) ||
-      thuoc.sodangky.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const displayedThuoc = useMemo(() => {
+    let filtered = tatCaThuoc;
+
+    switch (filterValue) {
+      case "Vỉ":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.donvicoban === filterValue,
+        );
+        break;
+      case "Hộp":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.donvicoban === filterValue,
+        );
+        break;
+      case "Lọ":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.donvicoban === filterValue,
+        );
+        break;
+      case "Chai":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.donvicoban === filterValue,
+        );
+        break;
+      case "Tuýp":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.donvicoban === filterValue,
+        );
+        break;
+      case "Gói":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.donvicoban === filterValue,
+        );
+        break;
+      case "Ống":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.donvicoban === filterValue,
+        );
+        break;
+      case "Thùng":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.donvicoban === filterValue,
+        );
+        break;
+      default:
+        break;
+    }
+
+    switch (filterValue2) {
+      case "Nơi khô ráo, dưới 30°C":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.dieukienbaoquan === filterValue2,
+        );
+        break;
+      case "Nơi khô ráo, tránh ánh sáng, dưới 30°C":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.dieukienbaoquan === filterValue2,
+        );
+        break;
+      case "Bảo quản dưới 25°C":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.dieukienbaoquan === filterValue2,
+        );
+        break;
+      case "Tránh ánh sáng, bảo quản ở nhiệt độ 15°C - 25°C":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.dieukienbaoquan === filterValue2,
+        );
+        break;
+      case "Bảo quản lạnh (2°C - 8°C)":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.dieukienbaoquan === filterValue2,
+        );
+        break;
+      case "Nhiệt độ dưới 30°C, không được đóng băng":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.dieukienbaoquan === filterValue2,
+        );
+        break;
+      case "Đậy kín nắp, tránh ẩm tuyệt đối, dưới 25°C":
+        filtered = filtered.filter(
+          (thuoc: any) => thuoc.dieukienbaoquan === filterValue2,
+        );
+        break;
+      default:
+        break;
+    }
+
+    if (filterValue3 == "1") {
+      filtered = filtered.filter(
+        (thuoc: any) => thuoc.trangthai === Number(filterValue3),
+      );
+    } else if (filterValue3 == "0") {
+      filtered = filtered.filter(
+        (thuoc: any) => thuoc.trangthai === Number(filterValue3),
+      );
+    }
+
+    const query = searchQuery.trim().toLowerCase();
+    if (query) {
+      filtered = filtered.filter(
+        (thuoc: any) =>
+          thuoc.tenthuoc.toLowerCase().includes(query) ||
+          String(thuoc.mathuoc).toLowerCase().includes(query) ||
+          thuoc.sodangky.toLowerCase().includes(query),
+      );
+    }
+
+    return filtered;
+  }, [tatCaThuoc, searchQuery, filterValue, filterValue2, filterValue3]);
 
   function openAddModal() {
     setIsEditMode(false);
@@ -101,7 +209,9 @@ export default function ThuocView() {
         await api.post("/thuoc", formData);
       }
       setShowModal(false);
-      showSuccess(isEditMode ? "Cập nhật thuốc thành công" : "Thêm thuốc thành công");
+      showSuccess(
+        isEditMode ? "Cập nhật thuốc thành công" : "Thêm thuốc thành công",
+      );
       getData();
     } catch (error) {
       console.error("Lỗi lưu thuốc:", error);
@@ -184,6 +294,59 @@ export default function ThuocView() {
             {authStore.isAdmin() && (
               <AddBtn func={openAddModal} placeholder='+ Thêm thuốc mới' />
             )}
+
+            <FilterNum2
+              itemTitle={["Đơn vị", "Bảo quản", "Trạng thái"]}
+              itemList={[
+                [
+                  { name: "Tất cả", value: "tatca" },
+                  { name: "Viên", value: "Viên" },
+                  { name: "Vỉ", value: "Vỉ" },
+                  { name: "Hộp", value: "Hộp" },
+                  { name: "Lọ", value: "Lọ" },
+                  { name: "Chai", value: "Chai" },
+                  { name: "Tuýp", value: "Tuýp" },
+                  { name: "Gói", value: "Gói" },
+                  { name: "Ống", value: "Ống" },
+                  { name: "Thùng", value: "Thùng" },
+                ],
+                [
+                  { name: "Tất cả", value: "0" },
+                  {
+                    name: "Nơi khô ráo, dưới 30°C",
+                    value: "Nơi khô ráo, dưới 30°C",
+                  },
+                  {
+                    name: "Nơi khô ráo, tránh ánh sáng, dưới 30°C",
+                    value: "Nơi khô ráo, tránh ánh sáng, dưới 30°C",
+                  },
+                  { name: "Bảo quản dưới 25°C", value: "Bảo quản dưới 25°C" },
+                  {
+                    name: "Tránh ánh sáng, bảo quản ở nhiệt độ 15°C - 25°C",
+                    value: "Tránh ánh sáng, bảo quản ở nhiệt độ 15°C - 25°C",
+                  },
+                  {
+                    name: "Bảo quản lạnh (2°C - 8°C)",
+                    value: "Bảo quản lạnh (2°C - 8°C)",
+                  },
+                  {
+                    name: "Nhiệt độ dưới 30°C, không được đóng băng",
+                    value: "Nhiệt độ dưới 30°C, không được đóng băng",
+                  },
+                  {
+                    name: "Đậy kín nắp, tránh ẩm tuyệt đối, dưới 25°C",
+                    value: "Đậy kín nắp, tránh ẩm tuyệt đối, dưới 25°C",
+                  },
+                ],
+                [
+                  { name: "Tất cả", value: "tatca" },
+                  { name: "Kinh doanh", value: "1" },
+                  { name: "Ngừng KD", value: "0" },
+                ],
+              ]}
+              func={[setFilterValue, setFilterValue2, setFilterValue3]}
+              filterValue={[filterValue, filterValue2, filterValue3]}
+            />
 
             <ReloadBtn func={getData} />
           </div>
@@ -382,7 +545,6 @@ export default function ThuocView() {
             onCancel={() => setIsDelete(null)}
           />
         )}
-
       </div>
     </>
   );

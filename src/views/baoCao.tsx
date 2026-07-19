@@ -3,7 +3,7 @@ import api from "../services/api";
 import Chart from "react-apexcharts";
 import { formatCurrency } from "../utils/customFunction";
 import ReloadBtn from "../components/common/reloadBtn";
-import { showSuccess,showError } from "../utils/notify";
+import { showSuccess, showError } from "../utils/notify";
 
 export default function BaoCaoView() {
   const [tuNgay, setTuNgay] = useState("");
@@ -31,7 +31,7 @@ export default function BaoCaoView() {
       try {
         const [resDT, resThuoc]: any = await Promise.all([
           api.get("/doitac"),
-          api.get("/thuoc")
+          api.get("/thuoc"),
         ]);
         setDanhSachDoitac(resDT?.data || []);
         setDanhSachThuoc(resThuoc?.data || []);
@@ -256,7 +256,7 @@ export default function BaoCaoView() {
       const [resTongQuan, resBieuDo, resChiTiet]: any = await Promise.all([
         api.get("/thongke/tongquan", { params }),
         api.get("/thongke/bieudo", { params }),
-        api.get("/thongke/chitiet", { params })
+        api.get("/thongke/chitiet", { params }),
       ]);
 
       if (resTongQuan?.success === false)
@@ -301,121 +301,137 @@ export default function BaoCaoView() {
   const years = [currentYear - 1, currentYear];
 
   return (
-    <div className={'bg-white p-6 rounded-xl shadow-sm border border-gray-100 min-h-screen print-area'}>
+    <div
+      className={
+        "bg-white p-6 rounded-xl shadow-sm border border-gray-100 min-h-screen print-area"
+      }
+    >
       <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6'>
         <div>
           <h2 className='text-2xl font-bold text-gray-800'>
-           Báo cáo Doanh thu & Lợi nhuận
+            Báo cáo Doanh thu & Lợi nhuận
           </h2>
           <p className='text-sm text-gray-500 mt-1'>
             Tổng quan hiệu quả kinh doanh theo thời gian
           </p>
         </div>
-
-        <div className='bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-end gap-3 print-hidden w-full overflow-x-auto whitespace-nowrap'>
-            <div>
-              <label className='block text-[11px] font-bold text-gray-500 uppercase mb-1'>
-                Từ ngày
-              </label>
-              <input
-                value={tuNgay}
-                onChange={(e) => setTuNgay(e.target.value)}
-                type='date'
-                className='px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[130px]'
-              />
-            </div>
-            
-            <div>
-              <label className='block text-[11px] font-bold text-gray-500 uppercase mb-1'>
-                Đến ngày
-              </label>
-              <input
-                value={denNgay}
-                onChange={(e) => setDenNgay(e.target.value)}
-                type='date'
-                className='px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[130px]'
-              />
-            </div>
-            
-            <div>
-              <label className='block text-[11px] font-bold text-gray-500 uppercase mb-1'>
-                Theo quý
-              </label>
-              <select
-                value={selectedQuarter}
-                onChange={(e) => {
-                  setSelectedQuarter(e.target.value);
-                  handleQuarterChange(e.target.value);
-                }}
-                className='px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 w-[110px]'
-              >
-                <option value=''>Chọn quý</option>
-                {years.map((year) => (
-                  <optgroup key={year} label={`Năm ${year}`}>
-                    <option value={`${year}-Q1`}>Q1 / {year}</option>
-                    <option value={`${year}-Q2`}>Q2 / {year}</option>
-                    <option value={`${year}-Q3`}>Q3 / {year}</option>
-                    <option value={`${year}-Q4`}>Q4 / {year}</option>
-                  </optgroup>
-                ))}
-              </select>
-            </div>
-
-            <div className="w-px h-10 bg-gray-300 mx-1 shrink-0 hidden md:block"></div>
-
-            <div>
-              <label className='block text-[11px] font-bold text-gray-500 uppercase mb-1'>
-                Lọc Đối Tác
-              </label>
-              <select
-                value={selectedDoitac}
-                onChange={(e) => setSelectedDoitac(e.target.value)}
-                className='px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]'
-              >
-                <option value=''>Tất cả</option>
-                {danhSachDoitac.map((dt) => (
-                  <option key={dt.madoitac} value={dt.madoitac}>
-                    {dt.tendoitac}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className='block text-[11px] font-bold text-gray-500 uppercase mb-1'>
-                Lọc Thuốc
-              </label>
-              <select
-                value={selectedThuoc}
-                onChange={(e) => setSelectedThuoc(e.target.value)}
-                className='px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]'
-              >
-                <option value=''>Tất cả</option>
-                {danhSachThuoc.map((t) => (
-                  <option key={t.mathuoc} value={t.mathuoc}>
-                    {t.tenthuoc}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              onClick={() => getData()}
-              className='px-5 py-2 h-[38px] bg-blue-600 text-white rounded-lg shadow-sm text-sm hover:bg-blue-700 font-bold transition ml-auto shrink-0 whitespace-nowrap'
-            >
-              Lọc Dữ Liệu
-            </button>
-            <button
-              onClick={handlePrint}
-              className='px-4 py-2 h-[38px] bg-gray-800 text-white rounded-lg shadow-sm text-sm hover:bg-gray-700 font-bold transition shrink-0 whitespace-nowrap flex items-center gap-2'
-              title='In báo cáo hoặc Lưu file PDF'
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-              Xuất PDF
-            </button>
-        </div>
       </div>
 
+      <div className='bg-gray-50 border border-gray-200 rounded-xl mb-5 p-3 flex items-end gap-3 print-hidden w-full overflow-x-auto whitespace-nowrap'>
+        <div>
+          <label className='block text-[11px] font-bold text-gray-500 uppercase mb-1'>
+            Từ ngày
+          </label>
+          <input
+            value={tuNgay}
+            onChange={(e) => setTuNgay(e.target.value)}
+            type='date'
+            className='px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[130px]'
+          />
+        </div>
+
+        <div>
+          <label className='block text-[11px] font-bold text-gray-500 uppercase mb-1'>
+            Đến ngày
+          </label>
+          <input
+            value={denNgay}
+            onChange={(e) => setDenNgay(e.target.value)}
+            type='date'
+            className='px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 min-w-[130px]'
+          />
+        </div>
+
+        <div>
+          <label className='block text-[11px] font-bold text-gray-500 uppercase mb-1'>
+            Theo quý
+          </label>
+          <select
+            value={selectedQuarter}
+            onChange={(e) => {
+              setSelectedQuarter(e.target.value);
+              handleQuarterChange(e.target.value);
+            }}
+            className='px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 w-[110px]'
+          >
+            <option value=''>Chọn quý</option>
+            {years.map((year) => (
+              <optgroup key={year} label={`Năm ${year}`}>
+                <option value={`${year}-Q1`}>Q1 / {year}</option>
+                <option value={`${year}-Q2`}>Q2 / {year}</option>
+                <option value={`${year}-Q3`}>Q3 / {year}</option>
+                <option value={`${year}-Q4`}>Q4 / {year}</option>
+              </optgroup>
+            ))}
+          </select>
+        </div>
+
+        <div className='w-px h-10 bg-gray-300 mx-1 shrink-0 hidden md:block'></div>
+
+        <div>
+          <label className='block text-[11px] font-bold text-gray-500 uppercase mb-1'>
+            Lọc Đối Tác
+          </label>
+          <select
+            value={selectedDoitac}
+            onChange={(e) => setSelectedDoitac(e.target.value)}
+            className='px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 w-[190px]'
+          >
+            <option value=''>Tất cả</option>
+            {danhSachDoitac.map((dt) => (
+              <option key={dt.madoitac} value={dt.madoitac}>
+                {dt.tendoitac}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className='block text-[11px] font-bold text-gray-500 uppercase mb-1'>
+            Lọc Thuốc
+          </label>
+          <select
+            value={selectedThuoc}
+            onChange={(e) => setSelectedThuoc(e.target.value)}
+            className='px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500 w-[190px]'
+          >
+            <option value=''>Tất cả</option>
+            {danhSachThuoc.map((t) => (
+              <option key={t.mathuoc} value={t.mathuoc}>
+                {t.tenthuoc}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          onClick={() => getData()}
+          className='px-5 py-2 h-[38px] bg-blue-600 text-white rounded-lg shadow-sm text-sm hover:bg-blue-700 font-bold transition ml-auto shrink-0 whitespace-nowrap'
+        >
+          Lọc Dữ Liệu
+        </button>
+        <button
+          onClick={handlePrint}
+          className='px-4 py-2 h-[38px] bg-gray-800 text-white rounded-lg shadow-sm text-sm hover:bg-gray-700 font-bold transition shrink-0 whitespace-nowrap flex items-center gap-2'
+          title='In báo cáo hoặc Lưu file PDF'
+        >
+          <svg
+            className='w-4 h-4'
+            fill='none'
+            stroke='currentColor'
+            viewBox='0 0 24 24'
+            xmlns='http://www.w3.org/2000/svg'
+          >
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth={2}
+              d='M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z'
+            />
+          </svg>
+          Xuất PDF
+        </button>
+      </div>
 
       {errorMsg && (
         <div className='mb-6 p-4 rounded-lg border border-red-200 bg-red-50 text-red-600 text-sm font-semibold'>
@@ -467,7 +483,10 @@ export default function BaoCaoView() {
               Số đơn xuất kho
             </p>
             <p className='text-2xl font-black text-gray-800 mt-2 tracking-tight'>
-              {tongQuan.sodonhang} <span className="text-sm font-medium text-gray-400 tracking-normal">đơn</span>
+              {tongQuan.sodonhang}{" "}
+              <span className='text-sm font-medium text-gray-400 tracking-normal'>
+                đơn
+              </span>
             </p>
           </div>
         </div>
@@ -523,12 +542,13 @@ export default function BaoCaoView() {
             )}
           </div>
         </div>
-
       </div>
 
       <div className='mt-6 bg-white border border-gray-200 rounded-2xl shadow-sm p-5'>
         <h3 className='text-md font-bold text-gray-800 mb-4 tracking-wide uppercase'>
-          {selectedDoitac || selectedThuoc ? "Chi tiết giao dịch đã lọc" : "Lịch sử giao dịch gần đây"}
+          {selectedDoitac || selectedThuoc
+            ? "Chi tiết giao dịch đã lọc"
+            : "Lịch sử giao dịch gần đây"}
         </h3>
         <div className='overflow-x-auto'>
           <table className='w-full text-left text-sm whitespace-nowrap'>
@@ -539,30 +559,60 @@ export default function BaoCaoView() {
                 <th className='px-4 py-3'>Loại Đơn</th>
                 <th className='px-4 py-3'>Đối Tác</th>
                 <th className='px-4 py-3 text-right'>Giá Trị</th>
-                <th className='px-4 py-3 rounded-tr-lg text-center'>Trạng Thái</th>
+                <th className='px-4 py-3 rounded-tr-lg text-center'>
+                  Trạng Thái
+                </th>
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-100'>
               {chiTietGiaoDich.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className='px-4 py-8 text-center text-gray-500'>Không có dữ liệu</td>
+                  <td
+                    colSpan={6}
+                    className='px-4 py-8 text-center text-gray-500'
+                  >
+                    Không có dữ liệu
+                  </td>
                 </tr>
               ) : (
                 chiTietGiaoDich.map((item: any, idx: number) => (
-                  <tr key={idx} className='hover:bg-gray-50/50 transition-colors'>
-                    <td className='px-4 py-3 font-medium text-blue-600'>#{item.madonhang}</td>
-                    <td className='px-4 py-3 text-gray-600'>{new Date(item.ngaytao).toLocaleDateString("vi-VN")}</td>
-                    <td className='px-4 py-3'>
-                      {item.loaidonhang === 'nhap' 
-                        ? <span className='text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded'>Nhập kho</span> 
-                        : <span className='text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded'>Xuất kho</span>}
+                  <tr
+                    key={idx}
+                    className='hover:bg-gray-50/50 transition-colors'
+                  >
+                    <td className='px-4 py-3 font-medium text-blue-600'>
+                      #{item.madonhang}
                     </td>
-                    <td className='px-4 py-3 text-gray-800 max-w-[250px] truncate'>{item.tendoitac || "-"}</td>
-                    <td className='px-4 py-3 text-right font-bold text-gray-900'>{formatCurrency(Number(item.giatri || 0))}</td>
+                    <td className='px-4 py-3 text-gray-600'>
+                      {new Date(item.ngaytao).toLocaleDateString("vi-VN")}
+                    </td>
+                    <td className='px-4 py-3'>
+                      {item.loaidonhang === "nhap" ? (
+                        <span className='text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded'>
+                          Nhập kho
+                        </span>
+                      ) : (
+                        <span className='text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded'>
+                          Xuất kho
+                        </span>
+                      )}
+                    </td>
+                    <td className='px-4 py-3 text-gray-800 max-w-[250px] truncate'>
+                      {item.tendoitac || "-"}
+                    </td>
+                    <td className='px-4 py-3 text-right font-bold text-gray-900'>
+                      {formatCurrency(Number(item.giatri || 0))}
+                    </td>
                     <td className='px-4 py-3 text-center'>
-                      {item.trangthai === 'hoanthanh' 
-                        ? <span className='text-xs text-emerald-600 font-medium'>Hoàn thành</span>
-                        : <span className='text-xs text-blue-600 font-medium'>Đã duyệt</span>}
+                      {item.trangthai === "hoanthanh" ? (
+                        <span className='text-xs text-emerald-600 font-medium'>
+                          Hoàn thành
+                        </span>
+                      ) : (
+                        <span className='text-xs text-blue-600 font-medium'>
+                          Đã duyệt
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -571,7 +621,6 @@ export default function BaoCaoView() {
           </table>
         </div>
       </div>
-
 
       <style>{`
                 @media print {
@@ -597,4 +646,3 @@ export default function BaoCaoView() {
     </div>
   );
 }
-
