@@ -80,26 +80,27 @@ export default function KiemKeView() {
         <td className='p-2'>
           <input
             type='number'
+            min={0}
             value={item.soluong_thuc_te}
-            onChange={(e) => handleSoLuongChange(index, Number(e.target.value))}
+            onChange={(e) => handleSoLuongChange(index, Math.max(0, Number(e.target.value)))}
             className='w-24 px-2 py-2 border border-blue-300 rounded-md text-center font-black text-blue-700 bg-blue-50 outline-none focus:ring-2 focus:ring-blue-500'
           />
         </td>
         <td className='p-2 text-center'>
           <span
             className={
-              item.soluong_tru > 0
+              item.soluong_lech > 0
                 ? "text-red-600"
-                : item.soluong_tru < 0
+                : item.soluong_lech < 0
                   ? "text-green-600"
                   : "text-gray-400"
             }
             style={{ fontWeight: "bold" }}
           >
-            {item.soluong_tru > 0
-              ? `-${item.soluong_tru}`
-              : item.soluong_tru < 0
-                ? `+${Math.abs(item.soluong_tru)}`
+            {item.soluong_lech > 0
+              ? `-${item.soluong_lech}`
+              : item.soluong_lech < 0
+                ? `+${Math.abs(item.soluong_lech)}`
                 : "0"}
           </span>
         </td>
@@ -188,7 +189,7 @@ export default function KiemKeView() {
         malo: "",
         ton_he_thong: 0,
         soluong_thuc_te: 0,
-        soluong_tru: 0,
+        soluong_lech: 0,
         lydo: "",
       },
     ]);
@@ -213,7 +214,7 @@ export default function KiemKeView() {
   };
 
   const tinhToanLech = (item: any) => {
-    item.soluong_tru = Number(item.ton_he_thong) - Number(item.soluong_thuc_te);
+    item.soluong_lech = Number(item.ton_he_thong) - Number(item.soluong_thuc_te);
   };
 
   const handleSoLuongChange = (index: number, value: number) => {
@@ -243,7 +244,7 @@ export default function KiemKeView() {
     if (explicit !== undefined && explicit !== null) return Number(explicit);
     const tonHeThong = getTonHeThong(row);
     if (tonHeThong === null) return null;
-    return tonHeThong - Number(row?.soluong_tru || 0);
+    return tonHeThong - Number(row?.soluong_lech || 0);
   };
 
   const handleSaveKiemKe = async () => {
@@ -262,7 +263,7 @@ export default function KiemKeView() {
         api.post("/chitietkiemke", {
           maphieu: masterForm.maphieu,
           malo: item.malo,
-          soluong_tru: item.soluong_tru,
+          soluong_lech: item.soluong_lech,
           lydo: item.lydo,
         }),
       );
@@ -582,17 +583,17 @@ export default function KiemKeView() {
                               </td>
                               <td
                                 className={`px-5 py-3 text-sm text-center font-black ${
-                                  Number(row.soluong_tru) > 0
+                                  Number(row.soluong_lech) > 0
                                     ? "text-red-600"
-                                    : Number(row.soluong_tru) < 0
+                                    : Number(row.soluong_lech) < 0
                                       ? "text-green-600"
                                       : "text-gray-400"
                                 }`}
                               >
-                                {Number(row.soluong_tru) > 0
-                                  ? `-${row.soluong_tru} (Thiếu)`
-                                  : Number(row.soluong_tru) < 0
-                                    ? `+${Math.abs(row.soluong_tru)} (Dư)`
+                                {Number(row.soluong_lech) > 0
+                                  ? `-${row.soluong_lech} (Thiếu)`
+                                  : Number(row.soluong_lech) < 0
+                                    ? `+${Math.abs(row.soluong_lech)} (Dư)`
                                     : "0 (Khớp)"}
                               </td>
                               <td className='px-5 py-3 text-sm text-gray-600 italic'>
