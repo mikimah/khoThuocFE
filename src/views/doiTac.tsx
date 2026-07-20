@@ -397,7 +397,7 @@ export default function DoiTacView() {
                 <th className='p-4 font-semibold'>Liên hệ</th>
                 <th className='p-4 font-semibold'>Công nợ & Giao dịch</th>
                 <th className='p-4 font-semibold'>Trạng thái</th>
-                <th className='p-4 font-semibold'>Thao tác</th>
+                {authStore.isAdmin() && <th className='p-4 font-semibold'>Thao tác</th>}
               </tr>
             </thead>
             <tbody>{renderItems(displayedDoiTac)}</tbody>

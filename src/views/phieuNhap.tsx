@@ -11,7 +11,7 @@ import {
   extractPrice,
   convertYYMMDDToDate,
   addYearsToDate,
-  parseMoney
+  parseMoney,
 } from "../utils/customFunction";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
@@ -112,7 +112,7 @@ export default function PhieuNhapView() {
         console.log(newItems);
 
         // Cập nhật State 1 lần duy nhất
-        setChiTietData((prevData) => [...prevData,newItems]);
+        setChiTietData((prevData) => [...prevData, newItems]);
       } catch (e) {
         console.error("Lỗi khi thêm mục vào danh sách:", e);
         showError("Lỗi khi thêm mục vào danh sách. Vui lòng thử lại.");
@@ -663,12 +663,13 @@ export default function PhieuNhapView() {
             </div>
           </div>
 
-          <div className='grid grid-cols-12 gap-6'>
-            <div className='col-span-3 bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-fit space-y-4'>
-              <h3 className='font-bold text-gray-700 border-b pb-2 uppercase text-sm'>
-                Thông tin Phiếu Nhập
-              </h3>
+          <div className='w-full bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-fit space-y-4'>
+            <h3 className='font-bold text-gray-700 border-b pb-2 uppercase text-sm'>
+              Thông tin Phiếu Nhập
+            </h3>
+            <div className="flex items-start justify-center  gap-3">
 
+            <div className="flex-[1_1_50%]">
               <div>
                 <label className='block text-xs font-medium text-gray-500 mb-1'>
                   CHỌN NHÀ CUNG CẤP (*)
@@ -708,7 +709,7 @@ export default function PhieuNhapView() {
                 )}
               </div>
 
-              <div>
+              <div className='mt-2'>
                 <label className='block text-xs font-medium text-gray-500 mb-1'>
                   SỐ HÓA ĐƠN GTGT
                 </label>
@@ -727,55 +728,57 @@ export default function PhieuNhapView() {
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 uppercase'
                 />
               </div>
-
-              <div className='pt-4 border-t border-dashed space-y-3'>
-                <div className='flex justify-between items-center text-sm'>
-                  <span className='text-gray-500 font-bold uppercase text-[10px]'>
-                    Tiền hàng:
-                  </span>
-                  <span className='font-medium text-gray-800'>
-                    {formatCurrency(tongTienHang)}
-                  </span>
-                </div>
-                <div>
-                  <label className='block text-[10px] font-bold text-gray-500 mb-1 uppercase'>
-                    Chiết khấu từ NCC (VND):
-                  </label>
-                  <input
-                    value={masterForm.tienchietkhau}
-                    onChange={(e) =>
-                      setMasterForm({
-                        ...masterForm,
-                        tienchietkhau: Number(e.target.value),
-                      })
-                    }
-                    type='number'
-                    min='0'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg text-right font-bold text-orange-600 outline-none focus:ring-2 focus:ring-orange-400'
-                  />
-                </div>
-                <div className='flex justify-between items-center pt-2 border-t text-red-600 mb-4 bg-red-50 px-2 py-3 rounded'>
-                  <span className='font-bold text-sm'>CẦN TRẢ NCC:</span>
-                  <span className='font-black text-xl'>
-                    {formatCurrency(tongTienThanhToan)}
-                  </span>
-                </div>
-
-                <div>
-                  <label className='block text-[10px] font-bold text-blue-600 mb-1 uppercase'>
-                    TIỀN ĐÃ TRẢ NCC (VND)
-                  </label>
-                  <input
-                    value={masterForm.tiendathanhtoan}
-                    readOnly
-                    type='number'
-                    className='w-full px-4 py-3 border-2 border-blue-400 bg-gray-100 text-blue-700 rounded-lg text-right font-black outline-none cursor-not-allowed transition'
-                  />
-                </div>
-              </div>
             </div>
 
-            <div className='col-span-9 bg-white p-5 rounded-xl shadow-sm border border-gray-200'>
+            <div className=' space-y-3 flex-[1_1_50%]'>
+              <div className='flex justify-between items-center text-sm'>
+                <span className='text-gray-500 font-bold uppercase text-[10px]'>
+                  Tiền hàng:
+                </span>
+                <span className='font-medium text-gray-800'>
+                  {formatCurrency(tongTienHang)}
+                </span>
+              </div>
+              <div>
+                <label className='block text-[10px] font-bold text-gray-500 mb-1 uppercase'>
+                  Chiết khấu từ NCC (VND):
+                </label>
+                <input
+                  value={masterForm.tienchietkhau}
+                  onChange={(e) =>
+                    setMasterForm({
+                      ...masterForm,
+                      tienchietkhau: Number(e.target.value),
+                    })
+                  }
+                  type='number'
+                  min='0'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg text-right font-bold text-orange-600 outline-none focus:ring-2 focus:ring-orange-400'
+                />
+              </div>
+              <div className='flex justify-between items-center pt-2 border-t text-red-600 mb-4 bg-red-50 px-2 py-3 rounded'>
+                <span className='font-bold text-sm'>CẦN TRẢ NCC:</span>
+                <span className='font-black text-xl'>
+                  {formatCurrency(tongTienThanhToan)}
+                </span>
+              </div>
+
+              <div>
+                <label className='block text-[10px] font-bold text-blue-600 mb-1 uppercase'>
+                  TIỀN ĐÃ TRẢ NCC (VND)
+                </label>
+                <input
+                  value={masterForm.tiendathanhtoan}
+                  readOnly
+                  type='number'
+                  className='w-full px-4 py-3 border-2 border-blue-400 bg-gray-100 text-blue-700 rounded-lg text-right font-black outline-none cursor-not-allowed transition'
+                />
+              </div>
+            </div>
+                  </div>
+          </div>
+          <div className='grid grid-cols-12 gap-6 mt-5'>
+            <div className='col-span-12 bg-white p-5 rounded-xl shadow-sm border border-gray-200'>
               <div className='flex justify-between items-center border-b pb-3 mb-4'>
                 <h3 className='font-bold text-gray-700 uppercase text-sm'>
                   Chi tiết hàng nhập (Vốn)

@@ -4,7 +4,7 @@ import { useAuthStore } from "../context/useAuthStore";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
-import { showSuccess,showError } from "../utils/notify";
+import { showSuccess, showError } from "../utils/notify";
 
 export default function PhieuXuatView() {
   const authStore = useAuthStore();
@@ -30,7 +30,9 @@ export default function PhieuXuatView() {
   });
 
   // --- THANH TOÁN ---
-  const [hinhThucThanhToan, setHinhThucThanhToan] = useState<"roi" | "no" | "tratruoc">("roi");
+  const [hinhThucThanhToan, setHinhThucThanhToan] = useState<
+    "roi" | "no" | "tratruoc"
+  >("roi");
   const [soTienDaTra, setSoTienDaTra] = useState<number>(0);
 
   const [chiTietData, setChiTietData] = useState<any[]>([]);
@@ -59,7 +61,6 @@ export default function PhieuXuatView() {
             String(lo.trangthai || "").toLowerCase() === "sansangban",
         ),
       );
-
     } catch (error) {
       console.error("Lỗi tải dữ liệu:", error);
       showError("Không thể tải dữ liệu");
@@ -101,13 +102,13 @@ export default function PhieuXuatView() {
           <select
             value={item.malo || ""}
             onChange={(e) => {
-            const updatedData = [...chiTietData];
-            updatedData[index] = {
-              ...item,
-              malo: e.target.value,
-            };
-          handleChonLoHoacDonVi(index, updatedData[index]);
-        }}
+              const updatedData = [...chiTietData];
+              updatedData[index] = {
+                ...item,
+                malo: e.target.value,
+              };
+              handleChonLoHoacDonVi(index, updatedData[index]);
+            }}
             className='w-full px-2 py-2 border border-gray-300 rounded-md text-xs outline-none focus:ring-1 focus:ring-blue-500 shadow-sm'
             disabled={!item.mathuoc}
             required
@@ -124,7 +125,7 @@ export default function PhieuXuatView() {
         </td>
         <td className='p-2 align-top'>
           <select
-            value={item.madonvitinh || ""} 
+            value={item.madonvitinh || ""}
             onChange={(e) => {
               const selectedValue = e.target.value;
               setChiTietData((prev) => {
@@ -133,7 +134,10 @@ export default function PhieuXuatView() {
                   ...updatedData[index],
                   madonvitinh: selectedValue,
                 };
-                setTimeout(() => handleChonLoHoacDonVi(index, updatedData[index]), 0);
+                setTimeout(
+                  () => handleChonLoHoacDonVi(index, updatedData[index]),
+                  0,
+                );
                 return updatedData;
               });
             }}
@@ -165,7 +169,8 @@ export default function PhieuXuatView() {
               disabled={!item.malo || !item.madonvitinh}
               className='w-full px-4 py-2 border rounded-md text-sm text-center font-black shadow-sm outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
               style={{
-                backgroundColor: !item.malo || !item.madonvitinh ? "#f3f4f6" : "#eff6ff",
+                backgroundColor:
+                  !item.malo || !item.madonvitinh ? "#f3f4f6" : "#eff6ff",
                 color: !item.malo || !item.madonvitinh ? "#d1d5db" : "#1e40af",
               }}
             />
@@ -189,7 +194,9 @@ export default function PhieuXuatView() {
               type='number'
               className='w-full px-2 py-2 border border-gray-300 rounded-md text-sm text-center font-bold outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
             />
-            <span className='absolute right-1 top-2.5 text-[10px] font-bold text-gray-400'>%</span>
+            <span className='absolute right-1 top-2.5 text-[10px] font-bold text-gray-400'>
+              %
+            </span>
           </div>
         </td>
         <td className='p-2 text-right align-top'>
@@ -209,7 +216,11 @@ export default function PhieuXuatView() {
                   const sl = Number(updated[index].soluongthucte) || 0;
                   const dg = Number(updated[index].dongia) || 0;
                   const tienCK = dg * sl * (tyle / 100);
-                  updated[index] = { ...updated[index], tylechietchkhau: tyle, tienchietchkhau: tienCK };
+                  updated[index] = {
+                    ...updated[index],
+                    tylechietchkhau: tyle,
+                    tienchietchkhau: tienCK,
+                  };
                   return updated;
                 });
               }}
@@ -218,18 +229,26 @@ export default function PhieuXuatView() {
               max='100'
               className='w-full px-2 py-2 border border-orange-300 bg-orange-50 rounded-md text-sm text-center font-bold text-orange-700 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none'
             />
-            <span className='absolute right-1 top-2.5 text-[10px] font-bold text-orange-400'>%</span>
+            <span className='absolute right-1 top-2.5 text-[10px] font-bold text-orange-400'>
+              %
+            </span>
           </div>
         </td>
         {/* CỘT THÀNH TIỀN */}
         <td className='p-2 text-right align-top'>
           <span className='font-black text-green-700 text-sm block pt-1'>
             {formatCurrency(
-              Math.max(0, Number(item.dongia) * Number(item.soluongthucte) - Number(item.tienchietchkhau || 0))
+              Math.max(
+                0,
+                Number(item.dongia) * Number(item.soluongthucte) -
+                  Number(item.tienchietchkhau || 0),
+              ),
             )}
           </span>
           {Number(item.tienchietchkhau) > 0 && (
-            <span className='text-[10px] text-orange-500 font-bold block'>-{formatCurrency(item.tienchietchkhau)} CK</span>
+            <span className='text-[10px] text-orange-500 font-bold block'>
+              -{formatCurrency(item.tienchietchkhau)} CK
+            </span>
           )}
         </td>
         <td className='p-2 text-center align-top pt-3'>
@@ -281,10 +300,12 @@ export default function PhieuXuatView() {
     setChiTietData(chiTietData.filter((_, i) => i !== index));
   };
 
- const getDonViTheoThuoc = (mathuoc: any) => {
+  const getDonViTheoThuoc = (mathuoc: any) => {
     if (!mathuoc) return [];
     // 🛠️ Ép cả 2 về String để đảm bảo so sánh chính xác bất kể API trả về số hay chuỗi
-    return danhSachDonVi.filter((dv: any) => String(dv.mathuoc) === String(mathuoc));
+    return danhSachDonVi.filter(
+      (dv: any) => String(dv.mathuoc) === String(mathuoc),
+    );
   };
 
   const getLoTheoThuoc = (mathuoc: any) => {
@@ -359,62 +380,70 @@ export default function PhieuXuatView() {
   };
 
   // ĐÃ SỬA: Nhận trực tiếp (index, item) và ép String toàn bộ
- // ĐÃ SỬA: Chuẩn hóa phép tính hệ số quy đổi để không bị nhân giá lên gấp 10 lần
-  const handleChonLoHoacDonVi = useCallback((index: number, itemPassed?: any) => {
-    setChiTietData((prev) => {
-      const updated = [...prev];
-      const targetItem = itemPassed || updated[index];
-      if (!targetItem) return prev;
+  // ĐÃ SỬA: Chuẩn hóa phép tính hệ số quy đổi để không bị nhân giá lên gấp 10 lần
+  const handleChonLoHoacDonVi = useCallback(
+    (index: number, itemPassed?: any) => {
+      setChiTietData((prev) => {
+        const updated = [...prev];
+        const targetItem = itemPassed || updated[index];
+        if (!targetItem) return prev;
 
-      let giaGocCoBan = 0;
-      if (targetItem.malo) {
-        const lo: any = danhSachLo.find((l: any) => String(l.malo) === String(targetItem.malo));
-        giaGocCoBan = lo ? (Number(lo.gianhapgannhat) || Number(lo.gianhap) || 0) : 0;
-      }
+        let giaGocCoBan = 0;
+        if (targetItem.malo) {
+          const lo: any = danhSachLo.find(
+            (l: any) => String(l.malo) === String(targetItem.malo),
+          );
+          giaGocCoBan = lo
+            ? Number(lo.gianhapgannhat) || Number(lo.gianhap) || 0
+            : 0;
+        }
 
-      // LUẬT PHÉP TÍNH: Giá trong bảng lô thường là giá của đơn vị lớn (Hộp/Thùng).
-      // Nếu người dùng chọn đơn vị có hệ số lớn, ta KHÔNG nhân thêm hệ số nữa để tránh phóng đại giá.
-      let heSo = 1;
-      if (targetItem.madonvitinh) {
-        const dv: any = danhSachDonVi.find(
-          (d: any) => String(d.madonvitinh) === String(targetItem.madonvitinh)
-        );
-        // Nếu tìm thấy đơn vị quy đổi, kiểm tra xem có cần chia nhỏ hay giữ nguyên tùy cấu trúc DB của bạn
-        // Trường hợp này ta đưa về heSo = 1 nếu giá lô đã là giá hộp
-        heSo = 1; 
-      }
+        // LUẬT PHÉP TÍNH: Giá trong bảng lô thường là giá của đơn vị lớn (Hộp/Thùng).
+        // Nếu người dùng chọn đơn vị có hệ số lớn, ta KHÔNG nhân thêm hệ số nữa để tránh phóng đại giá.
+        let heSo = 1;
+        if (targetItem.madonvitinh) {
+          const dv: any = danhSachDonVi.find(
+            (d: any) =>
+              String(d.madonvitinh) === String(targetItem.madonvitinh),
+          );
+          // Nếu tìm thấy đơn vị quy đổi, kiểm tra xem có cần chia nhỏ hay giữ nguyên tùy cấu trúc DB của bạn
+          // Trường hợp này ta đưa về heSo = 1 nếu giá lô đã là giá hộp
+          heSo = 1;
+        }
 
-      const gianhapMoi = giaGocCoBan * heSo;
-      const phantram = Number(targetItem.phantramlai) || 0;
-      const dongiaMoi = gianhapMoi * (1 + phantram / 100);
+        const gianhapMoi = giaGocCoBan * heSo;
+        const phantram = Number(targetItem.phantramlai) || 0;
+        const dongiaMoi = gianhapMoi * (1 + phantram / 100);
 
-      updated[index] = {
-        ...targetItem,
-        gianhap: gianhapMoi,
-        dongia: dongiaMoi,
-      };
+        updated[index] = {
+          ...targetItem,
+          gianhap: gianhapMoi,
+          dongia: dongiaMoi,
+        };
 
-      return updated;
-    });
-  }, [danhSachLo, danhSachDonVi]);
+        return updated;
+      });
+    },
+    [danhSachLo, danhSachDonVi],
+  );
 
-
-
-// 🔥 1. VÁ LỖI CRASH KHI CHỌN "ĐƠN VỊ CƠ BẢN" VÀ ÉP KIỂU STRING
+  // 🔥 1. VÁ LỖI CRASH KHI CHỌN "ĐƠN VỊ CƠ BẢN" VÀ ÉP KIỂU STRING
   const getMaxQty = (item: any) => {
     if (!item.malo || !item.madonvitinh) return 0;
-    
-    const lo: any = danhSachLo.find((l: any) => String(l.malo) === String(item.malo));
+
+    const lo: any = danhSachLo.find(
+      (l: any) => String(l.malo) === String(item.malo),
+    );
     if (!lo) return 0;
 
     let heSo = 1; // Mặc định hệ số của 'base' là 1
     if (item.madonvitinh !== "base") {
       const dv: any = danhSachDonVi.find(
-        (d: any) => String(d.madonvitinh) === String(item.madonvitinh)
+        (d: any) => String(d.madonvitinh) === String(item.madonvitinh),
       );
       if (dv) heSo = Number(dv.hesoquydoi);
     }
-    
+
     return Math.floor(Number(lo.tonkhadung) / heSo);
   };
 
@@ -423,32 +452,32 @@ export default function PhieuXuatView() {
     setChiTietData((prev) => {
       const updatedData = [...prev];
       const currentItem = updatedData[index];
-      
+
       let val = parseInt(currentItem.soluongthucte);
       if (isNaN(val) || val < 1) val = 1;
-      
+
       const max = getMaxQty(currentItem);
       if (max > 0 && val > max) val = max; // Ép về mức tối đa nếu gõ lố
-      
+
       updatedData[index] = { ...currentItem, soluongthucte: val };
       return updatedData;
     });
   };
-  
+
   // (Đã xóa hàm tinhDonGiaBan vì ta sẽ tính trực tiếp trong onChange cho mượt)
-// 🔥 HÀM TÍNH ĐƠN GIÁ BÁN (An toàn với State, không dùng indexOf)
+  // 🔥 HÀM TÍNH ĐƠN GIÁ BÁN (An toàn với State, không dùng indexOf)
   const tinhDonGiaBan = (index: number, phantramlaiMoi: number) => {
     setChiTietData((prev) => {
       const updatedData = [...prev];
       const currentItem = updatedData[index];
-      
+
       updatedData[index] = {
         ...currentItem,
         phantramlai: phantramlaiMoi,
         // Tự động tính giá bán ngay khi % lãi thay đổi
         dongia: Number(currentItem.gianhap) * (1 + phantramlaiMoi / 100),
       };
-      
+
       return updatedData;
     });
   };
@@ -456,8 +485,9 @@ export default function PhieuXuatView() {
   const khachHangDuocChon = useMemo(() => {
     if (!masterForm.madoitac) return null;
     return (
-      danhSachKhachHang.find((k: any) => String(k.madoitac) === String(masterForm.madoitac)) ||
-      null
+      danhSachKhachHang.find(
+        (k: any) => String(k.madoitac) === String(masterForm.madoitac),
+      ) || null
     );
   }, [masterForm.madoitac, danhSachKhachHang]);
 
@@ -489,10 +519,8 @@ export default function PhieuXuatView() {
     const kh = khachHangDuocChon;
     if (!kh) return { tenHang: "Khách Mới" };
 
-    if (kh.solangiaodich_thanhcong >= 10)
-      return { tenHang: "Khách VIP" };
-    if (kh.solangiaodich_thanhcong >= 5)
-      return { tenHang: "Khách Thân Thiết" };
+    if (kh.solangiaodich_thanhcong >= 10) return { tenHang: "Khách VIP" };
+    if (kh.solangiaodich_thanhcong >= 5) return { tenHang: "Khách Thân Thiết" };
     return { tenHang: "Khách Thường" };
   }, [khachHangDuocChon]);
 
@@ -646,7 +674,8 @@ export default function PhieuXuatView() {
     const amount = Math.round(khachCanTraModal || 0);
     const addInfo = `Thanh toan don hang XUAT${selectedDonHang.madonhang}`;
     const base =
-      import.meta.env.VITE_VIETQR || "https://api.vietqr.io/image/970436-1042328265-wp5fFpl.jpg?accountName=TRAN%20TUAN%20DAT";
+      import.meta.env.VITE_VIETQR ||
+      "https://api.vietqr.io/image/970436-1042328265-wp5fFpl.jpg?accountName=TRAN%20TUAN%20DAT";
     return `${base}&amount=${amount}&addInfo=${encodeURIComponent(addInfo)}`;
   }, [selectedDonHang, khachCanTraModal]);
 
@@ -654,16 +683,17 @@ export default function PhieuXuatView() {
     if (!selectedDonHang) return;
 
     const khachHang = danhSachKhachHang.find(
-      (kh: any) => kh.madoitac === selectedDonHang.madoitac
+      (kh: any) => kh.madoitac === selectedDonHang.madoitac,
     );
 
     // Build bảng hàng hóa
-    const tableRows = chiTietDonHang.map((ct: any, idx: number) => {
-      const sl = Number(ct.soluongthucte || 0);
-      const dg = Number(ct.dongia || 0);
-      const ck = Number(ct.tienchietchkhau || 0);
-      const thanhtien = Math.max(0, sl * dg - ck);
-      return `
+    const tableRows = chiTietDonHang
+      .map((ct: any, idx: number) => {
+        const sl = Number(ct.soluongthucte || 0);
+        const dg = Number(ct.dongia || 0);
+        const ck = Number(ct.tienchietchkhau || 0);
+        const thanhtien = Math.max(0, sl * dg - ck);
+        return `
         <tr style="border-bottom: 1px solid #e5e7eb;">
           <td style="padding: 8px 10px; text-align:center; color:#6b7280;">${idx + 1}</td>
           <td style="padding: 8px 10px; font-weight:600;">${ct.tenthuoc || ct.mathuoc || "---"}</td>
@@ -673,14 +703,19 @@ export default function PhieuXuatView() {
           <td style="padding: 8px 10px; text-align:center; color:#f97316;">${Number(ct.tylechietchkhau || 0)}%</td>
           <td style="padding: 8px 10px; text-align:right; font-weight:700; color:#15803d;">${thanhtien.toLocaleString("vi-VN")}đ</td>
         </tr>`;
-    }).join("");
+      })
+      .join("");
 
     const tongTien = tongTienHangModal;
     const chietKhau = chietKhauModal;
     const canTra = khachCanTraModal;
     const daTra = Number(selectedDonHang.tiendathanhtoan || 0);
     const conNo = Math.max(0, canTra - daTra);
-    const ngayIn = new Date().toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const ngayIn = new Date().toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
 
     const html = `<!DOCTYPE html>
 <html lang="vi">
@@ -836,8 +871,6 @@ export default function PhieuXuatView() {
     }
   };
 
-
-
   useEffect(() => {
     getData();
   }, []);
@@ -902,228 +935,258 @@ export default function PhieuXuatView() {
               gel!
             </div>
           )}
-
-          <div className='grid grid-cols-12 gap-6'>
-            <div className='col-span-3 bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-fit space-y-4'>
-              <h3 className='font-bold text-gray-700 border-b pb-2 uppercase text-sm'>
-                Thông tin
-              </h3>
-
-              <div>
-                <label className='block text-xs font-medium text-gray-500 mb-1'>
-                  KHÁCH HÀNG (*)
-                </label>
-                <select
-                  value={masterForm.madoitac}
-                  onChange={(e) =>
-                    setMasterForm({
-                      ...masterForm,
-                      madoitac: e.target.value,
-                    })
-                  }
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm outline-none'
-                  required
-                >
-                  <option value='' disabled>
-                    -- Chọn --
-                  </option>
-                  {danhSachKhachHang.map((dt) => (
-                    <option key={dt.madoitac} value={dt.madoitac}>
-                      {dt.tendoitac}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {khachHangDuocChon && (
-                <div className='bg-gray-50 border border-gray-200 rounded-lg p-3 text-[12px] space-y-1.5'>
-                  <div className='flex justify-between items-center border-b border-dashed pb-1 mb-1'>
-                    <span className='text-gray-500 font-medium'>
-                      Hạng thành viên:
-                    </span>
-                    <span className="font-bold px-2 py-0.5 rounded text-white bg-blue-500">
-                      {mucChietKhau.tenHang}
-                    </span>
-                  </div>
-                  <div className='flex justify-between'>
-                    <span className='text-gray-500'>Hạn mức nợ:</span>
-                    <span className='font-bold'>
-                      {khachHangDuocChon.hanmucno > 0
-                        ? formatCurrency(khachHangDuocChon.hanmucno)
-                        : "Không giới hạn"}
-                    </span>
-                  </div>
-                  <div className='flex justify-between'>
-                    <span className='text-gray-500'>Nợ cũ:</span>
-                    <span className='font-bold text-red-500'>
-                      {formatCurrency(khachHangDuocChon.tongnohientai)}
-                    </span>
-                  </div>
-                  <div className='flex justify-between pt-1 border-t border-gray-200 mt-1'>
-                    <span className='text-gray-700 font-bold'>
-                      Nợ sau đơn này:
-                    </span>
-                    <span
-                      className={`font-black ${
-                        isVuotHanMuc ? "text-red-600" : "text-blue-600"
-                      }`}
-                    >
-                      {formatCurrency(tongNoDuKien)}
-                    </span>
-                  </div>
-                  {isVuotHanMuc && (
-                    <div className='mt-1 text-[10px] text-red-600 font-bold bg-red-100 p-1 rounded text-center'>
-                      ⚠️ VƯỢT HẠN MỨC NỢ
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div>
-                <label className='block text-xs font-medium text-gray-500 mb-1'>
-                  TRACKING ID (*)
-                </label>
-                <div className='flex gap-2'>
-                  <input
-                    value={masterForm.mavandon3pl}
-                    onChange={(e) =>
-                      setMasterForm({
-                        ...masterForm,
-                        mavandon3pl: e.target.value,
-                      })
-                    }
-                    type='text'
-                    placeholder='DP-YYYYMMDD-XXXX'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none'
-                  />
-                  <button
-                    type='button'
-                    onClick={handleAutoTracking}
-                    className='px-3 py-2 rounded-lg bg-yellow-500 text-white font-bold shadow hover:bg-yellow-600'
-                  >
-                    ⚡
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className='block text-xs font-medium text-gray-500 mb-1'>
-                  GHI CHÚ
-                </label>
-                <textarea
-                  value={masterForm.ghi_chu}
-                  onChange={(e) =>
-                    setMasterForm({ ...masterForm, ghi_chu: e.target.value })
-                  }
-                  rows={2}
-                  placeholder='Ghi chú thêm cho đơn hàng...'
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none resize-none text-sm'
-                />
-              </div>
-
-              <div className='pt-4 border-t border-dashed space-y-3'>
-                <div className='flex justify-between items-center text-sm'>
-                  <span className='text-gray-500 font-bold uppercase text-[10px]'>
-                    Tiền hàng:
-                  </span>
-                  <span className='font-medium text-gray-800'>
-                    {formatCurrency(tongTienHang)}
-                  </span>
-                </div>
+          <div className='col-span-3 bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-fit space-y-4'>
+            <h3 className='font-bold text-gray-700 border-b pb-2 uppercase text-sm'>
+              Thông tin
+            </h3>
+            <div className='flex items-start justify-around gap-2'>
+              <div className='flex-[1_1_30%] flex flex-col gap-2'>
                 <div>
-                  <div className='flex justify-between items-center mb-1'>
-                    <label className='text-[10px] font-bold text-gray-500 uppercase'>
-                      Chiết khấu (VND):
-                    </label>
-                  </div>
-                  <input
-                    value={masterForm.tienchietkhau}
+                  <label className='block text-xs font-medium text-gray-500 mb-1'>
+                    KHÁCH HÀNG (*)
+                  </label>
+                  <select
+                    value={masterForm.madoitac}
                     onChange={(e) =>
                       setMasterForm({
                         ...masterForm,
-                        tienchietkhau: Number(e.target.value),
+                        madoitac: e.target.value,
                       })
                     }
-                    type='number'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg text-right font-bold text-orange-600 outline-none'
-                  />
-                </div>
-                <div className='flex justify-between items-center pt-2 border-t text-red-600'>
-                  <span className='font-bold text-sm'>KHÁCH PHẢI TRẢ:</span>
-                  <span className='font-black text-xl'>
-                    {formatCurrency(tongGiaTriDon)}
-                  </span>
-                </div>
-
-                {/* PANEL THANH TOÁN THÔNG MINH */}
-                <div className='border border-blue-200 rounded-xl overflow-hidden'>
-                  <div className='bg-blue-600 px-3 py-2'>
-                    <p className='text-white font-bold text-[11px] uppercase tracking-wide'>💳 Hình thức thanh toán</p>
-                  </div>
-                  <div className='p-3 space-y-2 bg-blue-50'>
-                    {/* Lựa chọn */}
-                    {([
-                      { key: "roi", label: "✅ Thanh toán RỒI", desc: "Khách trả đủ" },
-                      { key: "no", label: "📋 Ghi NỢ", desc: "Chưa trả đồng nào" },
-                      { key: "tratruoc", label: "💵 Trả trước 1 phần", desc: "Nhập số tiền đã trả" },
-                    ] as const).map((opt) => (
-                      <label
-                        key={opt.key}
-                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer border transition ${
-                          hinhThucThanhToan === opt.key
-                            ? "bg-white border-blue-400 shadow-sm"
-                            : "border-transparent hover:bg-white/60"
-                        }`}
-                      >
-                        <input
-                          type='radio'
-                          name='hinhthuc'
-                          value={opt.key}
-                          checked={hinhThucThanhToan === opt.key}
-                          onChange={() => setHinhThucThanhToan(opt.key)}
-                          className='accent-blue-600'
-                        />
-                        <div>
-                          <p className='text-xs font-bold text-gray-800'>{opt.label}</p>
-                          <p className='text-[10px] text-gray-500'>{opt.desc}</p>
-                        </div>
-                      </label>
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm outline-none'
+                    required
+                  >
+                    <option value='' disabled>
+                      -- Chọn --
+                    </option>
+                    {danhSachKhachHang.map((dt) => (
+                      <option key={dt.madoitac} value={dt.madoitac}>
+                        {dt.tendoitac}
+                      </option>
                     ))}
+                  </select>
+                </div>
 
-                    {/* Ô nhập tiền nếu chọn trả trước */}
-                    {hinhThucThanhToan === "tratruoc" && (
-                      <div className='pt-1'>
-                        <label className='block text-[10px] font-bold text-blue-700 mb-1 uppercase'>Số tiền đã trả (VND):</label>
-                        <input
-                          type='number'
-                          min='0'
-                          max={tongGiaTriDon}
-                          value={soTienDaTra}
-                          onChange={(e) => setSoTienDaTra(Number(e.target.value))}
-                          className='w-full px-3 py-2 border-2 border-blue-300 bg-white text-blue-700 rounded-lg text-right font-bold outline-none focus:ring-2 focus:ring-blue-500'
-                        />
-                      </div>
-                    )}
-
-                    {/* Preview nợ còn lại */}
-                    <div className='flex justify-between items-center pt-2 border-t border-blue-200 mt-1'>
-                      <span className='text-[11px] font-bold text-gray-600 uppercase'>Còn nợ đơn này:</span>
-                      <span className={`font-black text-sm ${
-                        hinhThucThanhToan === "roi" ? "text-green-600" : "text-red-600"
-                      }`}>
-                        {hinhThucThanhToan === "roi"
-                          ? "0đ ✓"
-                          : hinhThucThanhToan === "no"
-                          ? formatCurrency(tongGiaTriDon)
-                          : formatCurrency(Math.max(0, tongGiaTriDon - soTienDaTra))}
+                {khachHangDuocChon && (
+                  <div className='bg-gray-50 border border-gray-200 rounded-lg p-3 text-[12px] space-y-1.5'>
+                    <div className='flex justify-between items-center border-b border-dashed pb-1 mb-1'>
+                      <span className='text-gray-500 font-medium'>
+                        Hạng thành viên:
+                      </span>
+                      <span className='font-bold px-2 py-0.5 rounded text-white bg-blue-500'>
+                        {mucChietKhau.tenHang}
                       </span>
                     </div>
+                    <div className='flex justify-between'>
+                      <span className='text-gray-500'>Hạn mức nợ:</span>
+                      <span className='font-bold'>
+                        {khachHangDuocChon.hanmucno > 0
+                          ? formatCurrency(khachHangDuocChon.hanmucno)
+                          : "Không giới hạn"}
+                      </span>
+                    </div>
+                    <div className='flex justify-between'>
+                      <span className='text-gray-500'>Nợ cũ:</span>
+                      <span className='font-bold text-red-500'>
+                        {formatCurrency(khachHangDuocChon.tongnohientai)}
+                      </span>
+                    </div>
+                    <div className='flex justify-between pt-1 border-t border-gray-200 mt-1'>
+                      <span className='text-gray-700 font-bold'>
+                        Nợ sau đơn này:
+                      </span>
+                      <span
+                        className={`font-black ${
+                          isVuotHanMuc ? "text-red-600" : "text-blue-600"
+                        }`}
+                      >
+                        {formatCurrency(tongNoDuKien)}
+                      </span>
+                    </div>
+                    {isVuotHanMuc && (
+                      <div className='mt-1 text-[10px] text-red-600 font-bold bg-red-100 p-1 rounded text-center'>
+                        ⚠️ VƯỢT HẠN MỨC NỢ
+                      </div>
+                    )}
                   </div>
+                )}
+              </div>
+              <div className='flex-[1_1_30%] flex flex-col gap-2'>
+                <div>
+                  <label className='block text-xs font-medium text-gray-500 mb-1'>
+                    TRACKING ID (*)
+                  </label>
+                  <div className='flex gap-2'>
+                    <input
+                      value={masterForm.mavandon3pl}
+                      onChange={(e) =>
+                        setMasterForm({
+                          ...masterForm,
+                          mavandon3pl: e.target.value,
+                        })
+                      }
+                      type='text'
+                      placeholder='DP-YYYYMMDD-XXXX'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none'
+                    />
+                    <button
+                      type='button'
+                      onClick={handleAutoTracking}
+                      className='px-3 py-2 rounded-lg bg-yellow-500 text-white font-bold shadow hover:bg-yellow-600'
+                    >
+                      ⚡
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className='block text-xs font-medium text-gray-500 mb-1'>
+                    GHI CHÚ
+                  </label>
+                  <textarea
+                    value={masterForm.ghi_chu}
+                    onChange={(e) =>
+                      setMasterForm({ ...masterForm, ghi_chu: e.target.value })
+                    }
+                    rows={2}
+                    placeholder='Ghi chú thêm cho đơn hàng...'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none resize-none text-sm'
+                  />
                 </div>
               </div>
             </div>
 
-            <div className='col-span-9 bg-white p-5 rounded-xl shadow-sm border border-gray-200'>
+            <div className='pt-4 border-t border-dashed space-y-3'>
+              <div className='flex justify-between items-center text-sm'>
+                <span className='text-gray-500 font-bold uppercase text-[10px]'>
+                  Tiền hàng:
+                </span>
+                <span className='font-medium text-gray-800'>
+                  {formatCurrency(tongTienHang)}
+                </span>
+              </div>
+              <div>
+                <div className='flex justify-between items-center mb-1'>
+                  <label className='text-[10px] font-bold text-gray-500 uppercase'>
+                    Chiết khấu (VND):
+                  </label>
+                </div>
+                <input
+                  value={masterForm.tienchietkhau}
+                  onChange={(e) =>
+                    setMasterForm({
+                      ...masterForm,
+                      tienchietkhau: Number(e.target.value),
+                    })
+                  }
+                  type='number'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg text-right font-bold text-orange-600 outline-none'
+                />
+              </div>
+              <div className='flex justify-between items-center pt-2 border-t text-red-600'>
+                <span className='font-bold text-sm'>KHÁCH PHẢI TRẢ:</span>
+                <span className='font-black text-xl'>
+                  {formatCurrency(tongGiaTriDon)}
+                </span>
+              </div>
+
+              {/* PANEL THANH TOÁN THÔNG MINH */}
+              <div className='border border-blue-200 rounded-xl overflow-hidden'>
+                <div className='bg-blue-600 px-3 py-2'>
+                  <p className='text-white font-bold text-[11px] uppercase tracking-wide'>
+                    💳 Hình thức thanh toán
+                  </p>
+                </div>
+                <div className='p-3 space-y-2 bg-blue-50'>
+                  {/* Lựa chọn */}
+                  {(
+                    [
+                      {
+                        key: "roi",
+                        label: "✅ Thanh toán RỒI",
+                        desc: "Khách trả đủ",
+                      },
+                      {
+                        key: "no",
+                        label: "📋 Ghi NỢ",
+                        desc: "Chưa trả đồng nào",
+                      },
+                      {
+                        key: "tratruoc",
+                        label: "💵 Trả trước 1 phần",
+                        desc: "Nhập số tiền đã trả",
+                      },
+                    ] as const
+                  ).map((opt) => (
+                    <label
+                      key={opt.key}
+                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer border transition ${
+                        hinhThucThanhToan === opt.key
+                          ? "bg-white border-blue-400 shadow-sm"
+                          : "border-transparent hover:bg-white/60"
+                      }`}
+                    >
+                      <input
+                        type='radio'
+                        name='hinhthuc'
+                        value={opt.key}
+                        checked={hinhThucThanhToan === opt.key}
+                        onChange={() => setHinhThucThanhToan(opt.key)}
+                        className='accent-blue-600'
+                      />
+                      <div>
+                        <p className='text-xs font-bold text-gray-800'>
+                          {opt.label}
+                        </p>
+                        <p className='text-[10px] text-gray-500'>{opt.desc}</p>
+                      </div>
+                    </label>
+                  ))}
+
+                  {/* Ô nhập tiền nếu chọn trả trước */}
+                  {hinhThucThanhToan === "tratruoc" && (
+                    <div className='pt-1'>
+                      <label className='block text-[10px] font-bold text-blue-700 mb-1 uppercase'>
+                        Số tiền đã trả (VND):
+                      </label>
+                      <input
+                        type='number'
+                        min='0'
+                        max={tongGiaTriDon}
+                        value={soTienDaTra}
+                        onChange={(e) => setSoTienDaTra(Number(e.target.value))}
+                        className='w-full px-3 py-2 border-2 border-blue-300 bg-white text-blue-700 rounded-lg text-right font-bold outline-none focus:ring-2 focus:ring-blue-500'
+                      />
+                    </div>
+                  )}
+
+                  {/* Preview nợ còn lại */}
+                  <div className='flex justify-between items-center pt-2 border-t border-blue-200 mt-1'>
+                    <span className='text-[11px] font-bold text-gray-600 uppercase'>
+                      Còn nợ đơn này:
+                    </span>
+                    <span
+                      className={`font-black text-sm ${
+                        hinhThucThanhToan === "roi"
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {hinhThucThanhToan === "roi"
+                        ? "0đ ✓"
+                        : hinhThucThanhToan === "no"
+                          ? formatCurrency(tongGiaTriDon)
+                          : formatCurrency(
+                              Math.max(0, tongGiaTriDon - soTienDaTra),
+                            )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className='grid grid-cols-12 gap-6 mt-5'>
+            <div className='col-span-12 bg-white p-5 rounded-xl shadow-sm border border-gray-200'>
               <div className='flex justify-between items-center border-b pb-3 mb-4'>
                 <h3 className='font-bold text-gray-700 uppercase text-sm'>
                   Giỏ hàng xuất
@@ -1158,8 +1221,12 @@ export default function PhieuXuatView() {
                       <th className='p-3 min-w-[150px] text-right text-red-600 font-bold'>
                         Đơn Giá
                       </th>
-                      <th className='p-3 min-w-[90px] text-center font-bold text-orange-600'>CK%</th>
-                      <th className='p-3 min-w-[140px] text-right font-bold text-green-700'>Thành Tiền</th>
+                      <th className='p-3 min-w-[90px] text-center font-bold text-orange-600'>
+                        CK%
+                      </th>
+                      <th className='p-3 min-w-[140px] text-right font-bold text-green-700'>
+                        Thành Tiền
+                      </th>
                       <th className='p-3 w-10'></th>
                     </tr>
                   </thead>
@@ -1179,7 +1246,7 @@ export default function PhieuXuatView() {
         <h2 className='text-2xl font-bold text-gray-800'>
           Quản lý Xuất Kho (Bán sỉ)
         </h2>
-        <div className="flex gap-4">
+        <div className='flex gap-4'>
           <AddBtn func={openForm} placeholder='Tạo Đơn Xuất' />
           <ReloadBtn func={getData} />
         </div>

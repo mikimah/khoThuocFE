@@ -2,7 +2,7 @@ import { ListFilter, Circle, CircleCheck } from "lucide-react";
 import { useState } from "react";
 
 export default function FilterNum2({ itemTitle, itemList, func, filterValue }) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <button
