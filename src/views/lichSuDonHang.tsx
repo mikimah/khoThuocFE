@@ -446,16 +446,22 @@ export default function LichSuDonHangView() {
                         - {formatCurrency(selectedMaster?.tienchietkhau || 0)}
                       </span>
                     </div>
-                    <div className='flex justify-between mb-2 text-sm text-blue-600 font-bold border-t pt-2'>
-                      <span>Cần thanh toán:</span>
-                      <span>
-                        {formatCurrency(selectedMaster?.tonggiatri || 0)}
-                      </span>
-                    </div>
-                    <div className='flex justify-between text-sm text-green-600 font-bold'>
-                      <span>Đã thanh toán (Đã trả):</span>
+                    <div className='flex justify-between text-sm text-green-600 font-bold border-t pt-2 mb-2'>
+                      <span>Đã thanh toán:</span>
                       <span>
                         - {formatCurrency(selectedMaster?.tiendathanhtoan || 0)}
+                      </span>
+                    </div>
+                    <div className='flex justify-between text-sm text-blue-600 font-bold'>
+                      <span>Cần thanh toán (Còn nợ):</span>
+                      <span>
+                        {formatCurrency(
+                          Math.max(
+                            0,
+                            (selectedMaster?.tonggiatri || 0) -
+                              (selectedMaster?.tiendathanhtoan || 0),
+                          ),
+                        )}
                       </span>
                     </div>
                   </div>
