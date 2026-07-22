@@ -123,6 +123,7 @@ export default function PhieuNhapView() {
       console.warn("Code scan error:", errorMessage);
     }
   }, [showQrScanner]);
+  
 
   const [masterForm, setMasterForm] = useState({
     madoitac: "",
@@ -605,10 +606,6 @@ export default function PhieuNhapView() {
     getData();
   }, []);
 
-  const handleScanQRCode = () => {
-    // Implement QR code scanning logic here
-  };
-
   if (showForm) {
     return (
       <div className='bg-gray-50 -m-6 p-6 min-h-screen relative'>
@@ -805,7 +802,6 @@ export default function PhieuNhapView() {
                 </h3>
                 <div className='flex items-center justify-center gap-2'>
                   <button
-                    onClick={handleScanQRCode}
                     type='button'
                     className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 p-2 rounded-lg font-bold border border-blue-200 transition'
                   >
