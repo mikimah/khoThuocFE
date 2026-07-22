@@ -29,6 +29,7 @@ export default function PhieuNhapView() {
   const [showForm, setShowForm] = useState(false);
 
   const [showQrScanner, setShowQrScanner] = useState(false);
+  const [barcodeContent, setBarcodeContent] = useState("");
 
   useEffect(() => {
     const element = document.getElementById("reader");
@@ -75,8 +76,16 @@ export default function PhieuNhapView() {
       // 1. Dừng quét an toàn
       scanner.clear().catch((err) => console.error("Lỗi đóng camera:", err));
       setShowQrScanner(false);
+      handleScan(result);
+    }
 
-      // 2. Tạo một biến để chứa mảng sau khi giải mã chữ -> mảng
+    function error(errorMessage: any) {
+      console.warn("Code scan error:", errorMessage);
+    }
+  }, [showQrScanner]);
+
+  function handleScan(result: string) {
+    try {
       const decodedString = result || "";
       const id = extractLeadingNum(decodedString);
       const loCode = extractLoCode(decodedString);
@@ -86,43 +95,25 @@ export default function PhieuNhapView() {
       const dateE = addYearsToDate(dateS, Number(yearsAdd) || 0);
       const price = parseMoney(extractPrice(decodedString));
 
-      console.log({
-        id,
-        loCode,
-        extractedDate,
-        dateS,
-        yearsAdd,
-        dateE,
-        price,
-      });
+      const newItems = {
+        mathuoc: id || "",
+        madonvitinh: "",
+        solo: loCode || "",
+        ngaysanxuat: dateS || "",
+        hansudung: dateE || "",
+        soluongthucte: 1,
+        soluongyeucau: 1,
+        gianhap: price || 0,
+      };
 
-      // 3. Tiến hành map và cập nhật vào State chi tiết phiếu nhập
-      try {
-        const newItems = {
-          mathuoc: id || "",
-          madonvitinh: "",
-          solo: loCode || "",
-          ngaysanxuat: dateS || "",
-          hansudung: dateE || "",
-          soluongthucte: 1,
-          soluongyeucau: 1,
-          gianhap: price || 0,
-        };
-
-        console.log(newItems);
-
-        // Cập nhật State 1 lần duy nhất
-        setChiTietData((prevData) => [...prevData, newItems]);
-      } catch (e) {
-        console.error("Lỗi khi thêm mục vào danh sách:", e);
-        showError("Lỗi khi thêm mục vào danh sách. Vui lòng thử lại.");
-      }
+      // Cập nhật State 1 lần duy nhất
+      setChiTietData((prevData) => [...prevData, newItems]);
+      showSuccess("Thêm mục vào danh sách thành công.");
+    } catch (e) {
+      console.error("Lỗi khi thêm mục vào danh sách:", e);
+      showError("Lỗi khi thêm mục vào danh sách. Vui lòng thử lại.");
     }
-
-    function error(errorMessage: any) {
-      console.warn("Code scan error:", errorMessage);
-    }
-  }, [showQrScanner]);
+  }
 
   const [masterForm, setMasterForm] = useState({
     madoitac: "",
@@ -802,29 +793,59 @@ export default function PhieuNhapView() {
                 <h3 className='font-bold text-gray-700 uppercase text-sm'>
                   Chi tiết hàng nhập (Vốn)
                 </h3>
-                <div className='flex items-center justify-center gap-2'>
-                  <button
-                    onClick={handleScanQRCode}
-                    type='button'
-                    className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 p-2 rounded-lg font-bold border border-blue-200 transition'
-                  >
-                    <ScanQrCode
-                      size={20}
-                      onClick={() => setShowQrScanner(true)}
+                <div className='flex items-center justify-center gap-2 divide-x-1'>
+                  <div className='flex gap-2 pr-2'>
+                    <input
+                      className='border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400'
+                      type='text'
+                      placeholder='Nhập mã vạch'
+                      value={barcodeContent}
+                      onChange={(e) => setBarcodeContent(e.target.value)}
                     />
-                  </button>
-                  <button
-                    onClick={themDongChiTiet}
-                    type='button'
-                    className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-bold border border-blue-200 transition'
-                  >
-                    + Thêm dòng
-                  </button>
+                    <button
+                      className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-bold border border-blue-200 transition'
+                      onClick={() => handleScan(barcodeContent)}
+                    >
+                      Nhập
+                    </button>
+                  </div>
+                  <div className='flex gap-2'>
+                    <button
+                      onClick={handleScanQRCode}
+                      type='button'
+                      className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 p-2 rounded-lg font-bold border border-blue-200 transition'
+                    >
+                      <ScanQrCode
+                        size={20}
+                        onClick={() => setShowQrScanner(true)}
+                      />
+                    </button>
+                    <button
+                      onClick={themDongChiTiet}
+                      type='button'
+                      className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-bold border border-blue-200 transition'
+                    >
+                      + Thêm dòng
+                    </button>
+                  </div>
                 </div>
               </div>
 
               <div className='overflow-x-auto min-h-[400px]'>
                 <table className='w-full text-left'>
+                  {showQrScanner && (
+                    <div className='z-20 flex items-center justify-center absolute top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-black/20'>
+                      <div
+                        id='reader'
+                        className={`w-[60%] mt-5 p-5 h-auto bg-white flex flex-col justify-center items-center `}
+                      ></div>
+                      <X
+                        size={40}
+                        className='absolute top-[40%] bg-white rounded-full right-4 cursor-pointer'
+                        onClick={() => setShowQrScanner(false)}
+                      />
+                    </div>
+                  )}
                   <thead>
                     <tr className='text-[11px] text-gray-500 uppercase border-b bg-gray-50/80'>
                       <th className='p-2 w-[22%] font-bold rounded-tl-lg'>
@@ -865,20 +886,6 @@ export default function PhieuNhapView() {
             </div>
           </div>
         </div>
-
-        {showQrScanner && (
-          <div className='z-20 flex items-start justify-center absolute top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-black/20'>
-            <div
-              id='reader'
-              className={`w-[60%] mt-5 p-5 h-auto bg-white flex flex-col justify-center items-center `}
-            ></div>
-            <X
-              size={40}
-              className='absolute top-4 bg-white rounded-full right-4 cursor-pointer'
-              onClick={() => setShowQrScanner(false)}
-            />
-          </div>
-        )}
       </div>
     );
   }
