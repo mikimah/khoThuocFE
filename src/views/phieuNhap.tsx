@@ -29,7 +29,6 @@ export default function PhieuNhapView() {
   const [showForm, setShowForm] = useState(false);
 
   const [showQrScanner, setShowQrScanner] = useState(false);
-  const [barcodeContent, setBarcodeContent] = useState("");
 
   useEffect(() => {
     const element = document.getElementById("reader");
@@ -76,16 +75,8 @@ export default function PhieuNhapView() {
       // 1. Dừng quét an toàn
       scanner.clear().catch((err) => console.error("Lỗi đóng camera:", err));
       setShowQrScanner(false);
-      handleScan(result);
-    }
 
-    function error(errorMessage: any) {
-      console.warn("Code scan error:", errorMessage);
-    }
-  }, [showQrScanner]);
-
-  function handleScan(result: string) {
-    try {
+      // 2. Tạo một biến để chứa mảng sau khi giải mã chữ -> mảng
       const decodedString = result || "";
       const id = extractLeadingNum(decodedString);
       const loCode = extractLoCode(decodedString);
@@ -95,25 +86,43 @@ export default function PhieuNhapView() {
       const dateE = addYearsToDate(dateS, Number(yearsAdd) || 0);
       const price = parseMoney(extractPrice(decodedString));
 
-      const newItems = {
-        mathuoc: id || "",
-        madonvitinh: "",
-        solo: loCode || "",
-        ngaysanxuat: dateS || "",
-        hansudung: dateE || "",
-        soluongthucte: 1,
-        soluongyeucau: 1,
-        gianhap: price || 0,
-      };
+      console.log({
+        id,
+        loCode,
+        extractedDate,
+        dateS,
+        yearsAdd,
+        dateE,
+        price,
+      });
 
-      // Cập nhật State 1 lần duy nhất
-      setChiTietData((prevData) => [...prevData, newItems]);
-      showSuccess("Thêm mục vào danh sách thành công.");
-    } catch (e) {
-      console.error("Lỗi khi thêm mục vào danh sách:", e);
-      showError("Lỗi khi thêm mục vào danh sách. Vui lòng thử lại.");
+      // 3. Tiến hành map và cập nhật vào State chi tiết phiếu nhập
+      try {
+        const newItems = {
+          mathuoc: id || "",
+          madonvitinh: "",
+          solo: loCode || "",
+          ngaysanxuat: dateS || "",
+          hansudung: dateE || "",
+          soluongthucte: 1,
+          soluongyeucau: 1,
+          gianhap: price || 0,
+        };
+
+        console.log(newItems);
+
+        // Cập nhật State 1 lần duy nhất
+        setChiTietData((prevData) => [...prevData, newItems]);
+      } catch (e) {
+        console.error("Lỗi khi thêm mục vào danh sách:", e);
+        showError("Lỗi khi thêm mục vào danh sách. Vui lòng thử lại.");
+      }
     }
-  }
+
+    function error(errorMessage: any) {
+      console.warn("Code scan error:", errorMessage);
+    }
+  }, [showQrScanner]);
 
   const [masterForm, setMasterForm] = useState({
     madoitac: "",
@@ -664,108 +673,109 @@ export default function PhieuNhapView() {
             <h3 className='font-bold text-gray-700 border-b pb-2 uppercase text-sm'>
               Thông tin Phiếu Nhập
             </h3>
-            <div className='flex items-start justify-center  gap-3'>
-              <div className='flex-[1_1_50%]'>
-                <div>
-                  <label className='block text-xs font-medium text-gray-500 mb-1'>
-                    CHỌN NHÀ CUNG CẤP (*)
-                  </label>
-                  <select
-                    value={masterForm.madoitac}
-                    onChange={(e) =>
-                      setMasterForm({
-                        ...masterForm,
-                        madoitac: e.target.value,
-                      })
-                    }
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm outline-none focus:ring-2 focus:ring-blue-500'
-                    required
-                  >
-                    <option value='' disabled>
-                      -- Chọn nhà cung cấp --
-                    </option>
-                    {danhSachNhaCungCap.map((dt) => (
-                      <option key={dt.madoitac} value={dt.madoitac}>
-                        {dt.tendoitac}
-                      </option>
-                    ))}
-                  </select>
-                  {nhaCungCapDuocChon && (
-                    <div className='mt-2 bg-blue-50 border border-blue-100 p-2 rounded text-[11px] text-gray-700 space-y-1'>
-                      <p>
-                        <b>Mã số thuế:</b>{" "}
-                        <span className='text-blue-700 font-black'>
-                          {nhaCungCapDuocChon.masothue || "Chưa cập nhật"}
-                        </span>
-                      </p>
-                      <p className='truncate' title={nhaCungCapDuocChon.diachi}>
-                        <b>Địa chỉ:</b> {nhaCungCapDuocChon.diachi || "---"}
-                      </p>
-                    </div>
-                  )}
-                </div>
+            <div className="flex items-start justify-center  gap-3">
 
-                <div className='mt-2'>
-                  <label className='block text-xs font-medium text-gray-500 mb-1'>
-                    SỐ HÓA ĐƠN GTGT
-                  </label>
-                  {/* ĐÃ SỬA: Mở rộng ký tự để nhập đúng chuẩn Hóa đơn điện tử */}
-                  <input
-                    value={masterForm.sohoadongtgt}
-                    onChange={(e) =>
-                      setMasterForm({
-                        ...masterForm,
-                        sohoadongtgt: e.target.value.toUpperCase(),
-                      })
-                    }
-                    type='text'
-                    maxLength={20}
-                    placeholder='VD: 1C26TAA-00001234'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 uppercase'
-                  />
-                </div>
+            <div className="flex-[1_1_50%]">
+              <div>
+                <label className='block text-xs font-medium text-gray-500 mb-1'>
+                  CHỌN NHÀ CUNG CẤP (*)
+                </label>
+                <select
+                  value={masterForm.madoitac}
+                  onChange={(e) =>
+                    setMasterForm({
+                      ...masterForm,
+                      madoitac: e.target.value,
+                    })
+                  }
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm outline-none focus:ring-2 focus:ring-blue-500'
+                  required
+                >
+                  <option value='' disabled>
+                    -- Chọn nhà cung cấp --
+                  </option>
+                  {danhSachNhaCungCap.map((dt) => (
+                    <option key={dt.madoitac} value={dt.madoitac}>
+                      {dt.tendoitac}
+                    </option>
+                  ))}
+                </select>
+                {nhaCungCapDuocChon && (
+                  <div className='mt-2 bg-blue-50 border border-blue-100 p-2 rounded text-[11px] text-gray-700 space-y-1'>
+                    <p>
+                      <b>Mã số thuế:</b>{" "}
+                      <span className='text-blue-700 font-black'>
+                        {nhaCungCapDuocChon.masothue || "Chưa cập nhật"}
+                      </span>
+                    </p>
+                    <p className='truncate' title={nhaCungCapDuocChon.diachi}>
+                      <b>Địa chỉ:</b> {nhaCungCapDuocChon.diachi || "---"}
+                    </p>
+                  </div>
+                )}
               </div>
 
-              <div className=' space-y-3 flex-[1_1_50%]'>
-                <div className='flex justify-between items-center text-sm'>
-                  <span className='text-gray-500 font-bold uppercase text-[10px]'>
-                    Tiền hàng:
-                  </span>
-                  <span className='font-medium text-gray-800'>
-                    {formatCurrency(tongTienHang)}
-                  </span>
-                </div>
-                <div>
-                  <label className='block text-[10px] font-bold text-gray-500 mb-1 uppercase'>
-                    Chiết khấu từ NCC (VND):
-                  </label>
-                  <input
-                    value={masterForm.tienchietkhau}
-                    onChange={(e) =>
-                      setMasterForm({
-                        ...masterForm,
-                        tienchietkhau: Number(e.target.value),
-                      })
-                    }
-                    type='number'
-                    min='0'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg text-right font-bold text-orange-600 outline-none focus:ring-2 focus:ring-orange-400'
-                  />
-                </div>
-                <div className='flex justify-between items-center pt-2 border-t text-red-600 mb-4 bg-red-50 px-2 py-3 rounded'>
-                  <span className='font-bold text-sm'>
+              <div className='mt-2'>
+                <label className='block text-xs font-medium text-gray-500 mb-1'>
+                  SỐ HÓA ĐƠN GTGT
+                </label>
+                {/* ĐÃ SỬA: Mở rộng ký tự để nhập đúng chuẩn Hóa đơn điện tử */}
+                <input
+                  value={masterForm.sohoadongtgt}
+                  onChange={(e) =>
+                    setMasterForm({
+                      ...masterForm,
+                      sohoadongtgt: e.target.value.toUpperCase(),
+                    })
+                  }
+                  type='text'
+                  maxLength={20}
+                  placeholder='VD: 1C26TAA-00001234'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 uppercase'
+                />
+              </div>
+            </div>
+
+            <div className=' space-y-3 flex-[1_1_50%]'>
+              <div className='flex justify-between items-center text-sm'>
+                <span className='text-gray-500 font-bold uppercase text-[10px]'>
+                  Tiền hàng:
+                </span>
+                <span className='font-medium text-gray-800'>
+                  {formatCurrency(tongTienHang)}
+                </span>
+              </div>
+              <div>
+                <label className='block text-[10px] font-bold text-gray-500 mb-1 uppercase'>
+                  Chiết khấu từ NCC (VND):
+                </label>
+                <input
+                  value={masterForm.tienchietkhau}
+                  onChange={(e) =>
+                    setMasterForm({
+                      ...masterForm,
+                      tienchietkhau: Number(e.target.value),
+                    })
+                  }
+                  type='number'
+                  min='0'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg text-right font-bold text-orange-600 outline-none focus:ring-2 focus:ring-orange-400'
+                />
+              </div>
+              <div className='flex justify-between items-center pt-2 border-t text-red-600 mb-4 bg-red-50 px-2 py-3 rounded'>
+                <span className='font-bold text-sm'>
                     CẦN TRẢ NCC (CÒN NỢ):
                   </span>
-                  <span className='font-black text-xl'>
-                    {formatCurrency(
+                <span className='font-black text-xl'>
+                  {formatCurrency(
                       Math.max(
                         0,
                         tongTienThanhToan -
                           Number(masterForm.tiendathanhtoan || 0),
                       ),
                     )}
-                  </span>
-                </div>
+                </span>
+              </div>
 
                 <div>
                   <label className='block text-[10px] font-bold text-blue-600 mb-1 uppercase'>
@@ -793,59 +803,29 @@ export default function PhieuNhapView() {
                 <h3 className='font-bold text-gray-700 uppercase text-sm'>
                   Chi tiết hàng nhập (Vốn)
                 </h3>
-                <div className='flex items-center justify-center gap-2 divide-x-1'>
-                  <div className='flex gap-2 pr-2'>
-                    <input
-                      className='border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400'
-                      type='text'
-                      placeholder='Nhập mã vạch'
-                      value={barcodeContent}
-                      onChange={(e) => setBarcodeContent(e.target.value)}
+                <div className='flex items-center justify-center gap-2'>
+                  <button
+                    onClick={handleScanQRCode}
+                    type='button'
+                    className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 p-2 rounded-lg font-bold border border-blue-200 transition'
+                  >
+                    <ScanQrCode
+                      size={20}
+                      onClick={() => setShowQrScanner(true)}
                     />
-                    <button
-                      className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-bold border border-blue-200 transition'
-                      onClick={() => handleScan(barcodeContent)}
-                    >
-                      Nhập
-                    </button>
-                  </div>
-                  <div className='flex gap-2'>
-                    <button
-                      onClick={handleScanQRCode}
-                      type='button'
-                      className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 p-2 rounded-lg font-bold border border-blue-200 transition'
-                    >
-                      <ScanQrCode
-                        size={20}
-                        onClick={() => setShowQrScanner(true)}
-                      />
-                    </button>
-                    <button
-                      onClick={themDongChiTiet}
-                      type='button'
-                      className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-bold border border-blue-200 transition'
-                    >
-                      + Thêm dòng
-                    </button>
-                  </div>
+                  </button>
+                  <button
+                    onClick={themDongChiTiet}
+                    type='button'
+                    className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-bold border border-blue-200 transition'
+                  >
+                    + Thêm dòng
+                  </button>
                 </div>
               </div>
 
               <div className='overflow-x-auto min-h-[400px]'>
                 <table className='w-full text-left'>
-                  {showQrScanner && (
-                    <div className='z-20 flex items-center justify-center absolute top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-black/20'>
-                      <div
-                        id='reader'
-                        className={`w-[60%] mt-5 p-5 h-auto bg-white flex flex-col justify-center items-center `}
-                      ></div>
-                      <X
-                        size={40}
-                        className='absolute top-[40%] bg-white rounded-full right-4 cursor-pointer'
-                        onClick={() => setShowQrScanner(false)}
-                      />
-                    </div>
-                  )}
                   <thead>
                     <tr className='text-[11px] text-gray-500 uppercase border-b bg-gray-50/80'>
                       <th className='p-2 w-[22%] font-bold rounded-tl-lg'>
@@ -886,6 +866,20 @@ export default function PhieuNhapView() {
             </div>
           </div>
         </div>
+
+        {showQrScanner && (
+          <div className='z-20 flex items-start justify-center absolute top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-black/20'>
+            <div
+              id='reader'
+              className={`w-[60%] mt-5 p-5 h-auto bg-white flex flex-col justify-center items-center `}
+            ></div>
+            <X
+              size={40}
+              className='absolute top-4 bg-white rounded-full right-4 cursor-pointer'
+              onClick={() => setShowQrScanner(false)}
+            />
+          </div>
+        )}
       </div>
     );
   }
