@@ -134,7 +134,7 @@ export default function PhieuNhapView() {
     if (!masterForm.madoitac) return null;
     return (
       danhSachNhaCungCap.find(
-        (dt: any) => dt.madoitac === masterForm.madoitac,
+        (dt: any) => String(dt.madoitac) === String(masterForm.madoitac),
       ) || null
     );
   }, [masterForm.madoitac, danhSachNhaCungCap]);
@@ -637,10 +637,16 @@ export default function PhieuNhapView() {
                 </div>
                 <div className='text-center px-4'>
                   <p className='text-[10px] text-red-500 uppercase font-bold'>
-                    Cần Thanh Toán
+                    Cần Trả (Còn Nợ)
                   </p>
                   <p className='text-lg font-black text-red-600'>
-                    {formatCurrency(tongTienThanhToan)}
+                    {formatCurrency(
+                      Math.max(
+                        0,
+                        tongTienThanhToan -
+                          Number(masterForm.tiendathanhtoan || 0),
+                      ),
+                    )}
                   </p>
                 </div>
               </div>
@@ -747,9 +753,17 @@ export default function PhieuNhapView() {
                   />
                 </div>
                 <div className='flex justify-between items-center pt-2 border-t text-red-600 mb-4 bg-red-50 px-2 py-3 rounded'>
-                  <span className='font-bold text-sm'>CẦN TRẢ NCC:</span>
+                  <span className='font-bold text-sm'>
+                    CẦN TRẢ NCC (CÒN NỢ):
+                  </span>
                   <span className='font-black text-xl'>
-                    {formatCurrency(tongTienThanhToan)}
+                    {formatCurrency(
+                      Math.max(
+                        0,
+                        tongTienThanhToan -
+                          Number(masterForm.tiendathanhtoan || 0),
+                      ),
+                    )}
                   </span>
                 </div>
 
@@ -759,9 +773,15 @@ export default function PhieuNhapView() {
                   </label>
                   <input
                     value={masterForm.tiendathanhtoan}
-                    readOnly
+                    onChange={(e) =>
+                      setMasterForm({
+                        ...masterForm,
+                        tiendathanhtoan: Number(e.target.value),
+                      })
+                    }
                     type='number'
-                    className='w-full px-4 py-3 border-2 border-blue-400 bg-gray-100 text-blue-700 rounded-lg text-right font-black outline-none cursor-not-allowed transition'
+                    min='0'
+                    className='w-full px-4 py-3 border-2 border-blue-400 bg-white text-blue-700 rounded-lg text-right font-black outline-none focus:ring-2 focus:ring-blue-500 transition'
                   />
                 </div>
               </div>
@@ -828,28 +848,28 @@ export default function PhieuNhapView() {
                   )}
                   <thead>
                     <tr className='text-[11px] text-gray-500 uppercase border-b bg-gray-50/80'>
-                      <th className='p-3 min-w-[200px] font-bold rounded-tl-lg'>
+                      <th className='p-2 w-[22%] font-bold rounded-tl-lg'>
                         Tên Thuốc
                       </th>
-                      <th className='p-3 min-w-[140px] font-bold'>
+                      <th className='p-2 w-[12%] font-bold'>
                         ĐV Giao Dịch
                       </th>
-                      <th className='p-3 min-w-[150px] font-bold'>
-                        Tạo Lô Mới / HSD
+                      <th className='p-2 w-[15%] font-bold'>
+                        Lô / HSD
                       </th>
-                      <th className='p-3 min-w-[90px] text-center font-bold'>
+                      <th className='p-2 w-[7%] text-center font-bold'>
                         SL CT
                       </th>
-                      <th className='p-3 min-w-[100px] text-center font-bold text-blue-600'>
+                      <th className='p-2 w-[9%] text-center font-bold text-blue-600'>
                         SL Thực
                       </th>
-                      <th className='p-3 min-w-[150px] text-right font-bold'>
-                        Giá Nhập (Vốn)
+                      <th className='p-2 w-[15%] text-right font-bold'>
+                        Giá Nhập
                       </th>
-                      <th className='p-3 min-w-[150px] text-right font-bold text-gray-700'>
+                      <th className='p-2 w-[15%] text-right font-bold text-gray-700'>
                         Thành Tiền
                       </th>
-                      <th className='p-3 w-10 rounded-tr-lg'></th>
+                      <th className='p-2 w-[5%] rounded-tr-lg'></th>
                     </tr>
                   </thead>
                   <tbody>{renderItems(chiTietData)}</tbody>
@@ -894,7 +914,7 @@ export default function PhieuNhapView() {
                 <th className='p-4 font-semibold'>Mã Phiếu</th>
                 <th className='p-4 font-semibold'>Nhà Cung Cấp</th>
                 <th className='p-4 font-semibold'>Tổng Tiền (Vốn)</th>
-                <th className='p-4 font-semibold'>Công Nợ NCC</th>
+                <th className='p-4 font-semibold'>Phải Trả (Công Nợ)</th>
                 <th className='p-4 font-semibold'>Ngày Tạo</th>
                 <th className='p-4 font-semibold'>Trạng Thái</th>
                 <th className='p-4 font-semibold text-center'>Hành Động</th>
@@ -1106,27 +1126,44 @@ export default function PhieuNhapView() {
               )}
 
               <div className='mt-6 flex justify-end'>
-                <div className='w-72 bg-gray-50 p-4 rounded-lg border border-gray-200'>
+                <div className='w-80 bg-gray-50 p-4 rounded-lg border border-gray-200'>
                   <div className='flex justify-between mb-2 text-sm text-gray-600'>
-                    <span>Tiền hàng:</span>
+                    <span>Tổng tiền hàng:</span>
                     <span>{formatCurrency(tongTienHangChiTiet)}</span>
                   </div>
                   <div className='flex justify-between mb-2 text-sm text-orange-600'>
                     <span>Chiết khấu:</span>
                     <span>
-                      - {formatCurrency(selectedMaster?.tienchietkhau || 0)}
+                      - {formatCurrency(selectedMaster?.tienchietkhau || 0)}{" "}
+                      <span className='text-[11px] font-bold'>
+                        (~{" "}
+                        {tongTienHangChiTiet > 0
+                          ? (
+                              ((selectedMaster?.tienchietkhau || 0) /
+                                tongTienHangChiTiet) *
+                              100
+                            ).toFixed(2)
+                          : 0}
+                        %)
+                      </span>
                     </span>
                   </div>
-                  <div className='flex justify-between mb-2 text-sm text-blue-600 font-bold border-t pt-2'>
-                    <span>Cần thanh toán:</span>
-                    <span>
-                      {formatCurrency(selectedMaster?.tonggiatri || 0)}
-                    </span>
-                  </div>
-                  <div className='flex justify-between mb-2 text-sm text-gray-600'>
-                    <span>Đã trả NCC:</span>
+                  <div className='flex justify-between mb-2 text-sm text-green-600 border-t pt-2'>
+                    <span>Đã thanh toán cho NCC:</span>
                     <span>
                       - {formatCurrency(selectedMaster?.tiendathanhtoan || 0)}
+                    </span>
+                  </div>
+                  <div className='flex justify-between mb-2 text-sm text-red-600 font-bold'>
+                    <span>⚠ Phải Trả NCC (Công nợ):</span>
+                    <span>
+                      {formatCurrency(
+                        Math.max(
+                          0,
+                          (selectedMaster?.tonggiatri || 0) -
+                            (selectedMaster?.tiendathanhtoan || 0),
+                        ),
+                      )}
                     </span>
                   </div>
                 </div>

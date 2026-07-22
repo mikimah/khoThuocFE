@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
-import { formatDate } from "../utils/customFunction";
+import { formatDate, formatCurrency } from "../utils/customFunction";
 import SearchInput from "../components/common/searchInput";
 import ReloadBtn from "../components/common/reloadBtn";
 import FilterNum from "../components/common/filterNum";
@@ -76,16 +76,26 @@ export default function LoThuocView() {
           <span className='text-gray-400 mx-1'>/</span>
           <span className='font-medium text-gray-600'>{lo.tonthucte}</span>
         </td>
+        <td className='p-4 text-right font-bold text-red-600'>
+          {formatCurrency(lo.gianhapgannhat || 0)}
+        </td>
         <td className='p-4'>
           <span
             className={
               isExpired(lo.hansudung)
-                ? "text-red-600 font-bold"
+                ? "text-red-600 font-bold line-through"
+                : isNearExpired(lo.hansudung)
+                ? "text-orange-500 font-bold"
                 : "text-gray-600"
             }
           >
             {formatDate(lo.hansudung)}
           </span>
+          {isNearExpired(lo.hansudung) && (
+            <span className='block text-[10px] text-orange-500 font-bold mt-1'>
+              ⚠️ Cận date
+            </span>
+          )}
         </td>
         <td className='p-4'>
           {getTenViTri(lo.mavitri) ? (
@@ -99,28 +109,30 @@ export default function LoThuocView() {
           )}
         </td>
         <td className='p-4'>
-          {lo.trangthai === "sansangban" && (
-            <span className='px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase'>
-              Sẵn sàng bán
+          {lo.trangthai === "khoalo" ? (
+            <span className='px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded uppercase'>
+              Khóa (Hết Hạn)
             </span>
-          )}
-          {lo.trangthai === "biettru" && (
+          ) : lo.tonkhadung <= 0 ? (
+            <span className='px-2 py-1 bg-gray-200 text-gray-700 text-[10px] font-bold rounded uppercase'>
+              Hết hàng
+            </span>
+          ) : lo.trangthai === "biettru" ? (
             <span className='px-2 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded uppercase'>
               Biệt trữ
             </span>
-          )}
-          {lo.trangthai === "khoalo" && (
-            <span className='px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded uppercase'>
-              Khóa Lô
+          ) : lo.trangthai === "sansangban" ? (
+            <span className='px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase'>
+              Sẵn sàng bán
             </span>
-          )}
+          ) : null}
         </td>
         <td className='p-4 text-center'>
           <button
             onClick={() => openEditModal(lo)}
             className='text-white bg-gray-400 hover:bg-blue-500 transition-[.25s] rounded p-2 font-bold hover:cursor-pointer text-sm'
           >
-            Cất hàng
+            Sắp xếp
           </button>
         </td>
       </tr>
@@ -133,10 +145,13 @@ export default function LoThuocView() {
     let matchesStatus = true; // Mặc định true nghĩa là nếu "tatca" thì luôn thỏa mãn
 
     if (filterValue === "sansangban") {
-      matchesStatus = String(lo.trangthai || "").toLowerCase() === "sansangban";
+      matchesStatus = String(lo.trangthai || "").toLowerCase() === "sansangban" && lo.tonkhadung > 0;
     } else if (filterValue === "biettru") {
-      matchesStatus =
-        String(lo.trangthai || "").toLowerCase() === "biettru";
+      matchesStatus = String(lo.trangthai || "").toLowerCase() === "biettru" && lo.tonkhadung > 0;
+    } else if (filterValue === "hethang") {
+      matchesStatus = lo.tonkhadung <= 0 && String(lo.trangthai || "").toLowerCase() !== "khoalo";
+    } else if (filterValue === "khoalo") {
+      matchesStatus = String(lo.trangthai || "").toLowerCase() === "khoalo";
     }
 
     // 2. XỬ LÝ ĐIỀU KIỆN TÌM KIẾM CHỮ (searchQuery)
@@ -213,6 +228,14 @@ export default function LoThuocView() {
     return new Date(hansudung) < new Date();
   };
 
+  const isNearExpired = (hansudung: string): boolean => {
+    const today = new Date();
+    const expDate = new Date(hansudung);
+    const diffTime = expDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+    return diffDays >= 0 && diffDays <= 90; // Cận date trong vòng 3 tháng (90 ngày)
+  };
+
   return (
     <div className='bg-white p-6 rounded-xl shadow-sm border border-gray-100 min-h-screen'>
       {/* Header */}
@@ -232,7 +255,9 @@ export default function LoThuocView() {
             itemList={[
               { name: "Tất cả", value: "tatca" },
               { name: "Sẵn sàng bán", value: "sansangban" },
-              { name: "Biệt trừ", value: "biettru" },
+              { name: "Biệt trữ", value: "biettru" },
+              { name: "Hết hàng", value: "hethang" },
+              { name: "Khóa lô", value: "khoalo" },
             ]}
           />
           <ReloadBtn func={getData} />
@@ -254,6 +279,7 @@ export default function LoThuocView() {
                 <th className='p-4 font-bold text-center'>
                   Tồn Khả dụng / Thực tế
                 </th>
+                <th className='p-4 font-bold text-right text-red-600'>Giá vốn (Lần nhập cuối)</th>
                 <th className='p-4 font-bold'>Hạn sử dụng</th>
                 <th className='p-4 font-bold'>Vị trí kho</th>
                 <th className='p-4 font-bold'>Trạng Thái</th>
@@ -391,16 +417,22 @@ export default function LoThuocView() {
                   <label className='block text-sm font-bold text-gray-700 mb-1'>
                     Trạng thái lô
                   </label>
-                  <select
-                    name='trangthai'
-                    value={formData.trangthai}
-                    onChange={handleFormChange}
-                    className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none bg-white font-bold'
-                  >
-                    <option value='sansangban'>Sẵn sàng bán (Đã lên kệ)</option>
-                    <option value='biettru'>Biệt trữ (Chờ kiểm/Chờ xếp)</option>
-                    <option value='khoalo'>Khóa lô (Lỗi/Hết hạn)</option>
-                  </select>
+                  {formData.tonkhadung <= 0 ? (
+                    <div className='w-full px-3 py-2 border rounded-lg bg-gray-200 text-gray-600 font-bold'>
+                      Đã hết hàng (Không thể đổi trạng thái)
+                    </div>
+                  ) : (
+                    <select
+                      name='trangthai'
+                      value={formData.trangthai}
+                      onChange={handleFormChange}
+                      className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none bg-white font-bold'
+                    >
+                      <option value='sansangban'>Sẵn sàng bán (Đã lên kệ)</option>
+                      <option value='biettru'>Biệt trữ (Chờ kiểm/Chờ xếp)</option>
+                      <option value='khoalo'>Khóa lô (Lỗi/Hết hạn)</option>
+                    </select>
+                  )}
                 </div>
               </div>
 

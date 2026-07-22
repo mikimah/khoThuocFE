@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import api from "../services/api";
+import { Html5QrcodeScanner, Html5QrcodeSupportedFormats, Html5Qrcode } from "html5-qrcode";
 import { useAuthStore } from "../context/useAuthStore";
 import { formatDate, formatCurrency } from "../utils/customFunction";
 import AddBtn from "../components/common/addBtn";
 import ReloadBtn from "../components/common/reloadBtn";
 import { showSuccess, showError } from "../utils/notify";
+import { ScanQrCode, X } from "lucide-react";
 
 export default function PhieuXuatView() {
   const authStore = useAuthStore();
@@ -20,6 +22,60 @@ export default function PhieuXuatView() {
   const [selectedDonHang, setSelectedDonHang] = useState<any | null>(null);
   const [chiTietDonHang, setChiTietDonHang] = useState<any[]>([]);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+
+  const [showQrScanner, setShowQrScanner] = useState(false);
+
+  useEffect(() => {
+    const element = document.getElementById("reader-xuat");
+    if (!element) return;
+    const scanner = new Html5QrcodeScanner(
+      "reader-xuat",
+      {
+        fps: 10,
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          const width = Math.floor(viewfinderWidth * 0.8);
+          const height = Math.floor(viewfinderHeight * 0.3);
+          return {
+            width: width < 250 ? 250 : width,
+            height: height < 100 ? 100 : height,
+          };
+        },
+        videoConstraints: { facingMode: "environment" },
+        formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128],
+        rememberLastUsedCamera: false,
+        showTorchButtonIfSupported: true,
+        disableFlip: true,
+      },
+      false,
+    );
+
+    scanner.render(success, error);
+
+    function success(result: any) {
+      scanner.clear().catch((err) => console.error("Lỗi đóng camera:", err));
+      setShowQrScanner(false);
+      const decodedString = (result || "").trim();
+      handleBarcodeSearch(decodedString);
+    }
+
+    function error(errorMessage: any) {
+      // console.warn(errorMessage);
+    }
+  }, [showQrScanner, danhSachDonHang]);
+
+  const handleBarcodeSearch = (code: string) => {
+    if (!code) return;
+    const found = danhSachDonHang.find(
+      (dh: any) =>
+        (dh.mavandon3pl || "").toLowerCase() === code.toLowerCase() ||
+        String(dh.madonhang) === code,
+    );
+    if (found) {
+      openDetailModal(found);
+    } else {
+      showError("Không tìm thấy hóa đơn nào khớp với mã vạch: " + code);
+    }
+  };
 
   const [masterForm, setMasterForm] = useState({
     madoitac: "",
@@ -116,7 +172,7 @@ export default function PhieuXuatView() {
             <option value='' disabled>
               - Lô -
             </option>
-            {getLoTheoThuoc(item.mathuoc).map((lo) => (
+            {getLoOptionsForRow(item, item.mathuoc).map((lo: any) => (
               <option key={lo.malo} value={lo.malo}>
                 {lo.solo} (HSD: {formatDate(lo.hansudung)})
               </option>
@@ -310,12 +366,17 @@ export default function PhieuXuatView() {
 
   const getLoTheoThuoc = (mathuoc: any) => {
     if (!mathuoc) return [];
-    return danhSachLo.filter(
-      (lo: any) =>
-        String(lo.mathuoc) === String(mathuoc) &&
-        lo.tonkhadung > 0 &&
-        String(lo.trangthai || "").toLowerCase() === "sansangban",
-    );
+    return danhSachLo
+      .filter(
+        (lo: any) =>
+          String(lo.mathuoc) === String(mathuoc) &&
+          lo.tonkhadung > 0 &&
+          String(lo.trangthai || "").toLowerCase() === "sansangban",
+      )
+      .sort(
+        (a: any, b: any) =>
+          new Date(a.hansudung).getTime() - new Date(b.hansudung).getTime(),
+      );
   };
 
   const danhSachThuocCoTheXuat = useMemo(() => {
@@ -333,16 +394,30 @@ export default function PhieuXuatView() {
 
   const getThuocOptionsForRow = useCallback(
     (currentItem: any) => {
-      const selectedSet = new Set(
-        chiTietData
-          .filter((row: any) => row !== currentItem && row.mathuoc)
-          .map((row: any) => row.mathuoc),
-      );
-      return danhSachThuocCoTheXuat.filter(
-        (t: any) => !selectedSet.has(t.mathuoc),
-      );
+      // Cho phép chọn lại cùng 1 loại thuốc trên nhiều dòng khác nhau
+      return danhSachThuocCoTheXuat;
     },
-    [chiTietData, danhSachThuocCoTheXuat],
+    [danhSachThuocCoTheXuat],
+  );
+
+  const getLoOptionsForRow = useCallback(
+    (currentItem: any, mathuoc: any) => {
+      if (!mathuoc) return [];
+      
+      // Lấy tất cả các lô hiện có của thuốc này
+      const allLots = getLoTheoThuoc(mathuoc);
+      
+      // Lấy danh sách các mã lô đã được chọn ở CÁC DÒNG KHÁC
+      const selectedLots = new Set(
+        chiTietData
+          .filter((row: any) => row !== currentItem && row.malo)
+          .map((row: any) => String(row.malo))
+      );
+
+      // Loại bỏ các lô đã được chọn ở dòng khác
+      return allLots.filter((lo: any) => !selectedLots.has(String(lo.malo)));
+    },
+    [chiTietData, danhSachLo]
   );
 
   const generateTrackingId = () => {
@@ -599,6 +674,7 @@ export default function PhieuXuatView() {
         tienchietkhau: masterForm.tienchietkhau,
         tiendathanhtoan: tiendathanhtoanFinal,
         trangthai: "choduyet",
+        ghi_chu: masterForm.ghi_chu,
       };
       const resMaster: any = await api.post("/donhang", donHangData);
       const newDonHangId = resMaster.data.madonhang_moi;
@@ -664,9 +740,14 @@ export default function PhieuXuatView() {
     [selectedDonHang],
   );
 
+  const daThanhToanModal = useMemo(
+    () => Number(selectedDonHang?.tiendathanhtoan || 0),
+    [selectedDonHang],
+  );
+
   const khachCanTraModal = useMemo(
-    () => Math.max(0, tongTienHangModal - chietKhauModal),
-    [tongTienHangModal, chietKhauModal],
+    () => Math.max(0, tongTienHangModal - chietKhauModal - daThanhToanModal),
+    [tongTienHangModal, chietKhauModal, daThanhToanModal],
   );
 
   const vietQrUrl = useMemo(() => {
@@ -708,9 +789,8 @@ export default function PhieuXuatView() {
 
     const tongTien = tongTienHangModal;
     const chietKhau = chietKhauModal;
-    const canTra = khachCanTraModal;
     const daTra = Number(selectedDonHang.tiendathanhtoan || 0);
-    const conNo = Math.max(0, canTra - daTra);
+    const conNo = khachCanTraModal;
     const ngayIn = new Date().toLocaleDateString("vi-VN", {
       day: "2-digit",
       month: "2-digit",
@@ -735,9 +815,11 @@ export default function PhieuXuatView() {
     .pharmacy-info p { font-size: 11.5px; color: #4b5563; margin-top: 2px; }
 
     /* TITLE */
-    .doc-title { text-align: center; margin: 10px 0 16px; }
+    .doc-title { text-align: center; margin: 10px 0 16px; position: relative; }
     .doc-title h2 { font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #1f2937; }
     .doc-title p { font-size: 12px; color: #6b7280; margin-top: 3px; }
+    .barcode-container { position: absolute; top: -10px; right: 20px; text-align: center; }
+    .barcode-container img { height: 55px; }
 
     /* INFO GRID */
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 12.5px; }
@@ -777,89 +859,56 @@ export default function PhieuXuatView() {
       <p>📍 Địa chỉ: 170 YÊN LÃNG</p>
       <p>📞 Điện thoại: 0797938048 &nbsp;|&nbsp; 📧 Email: TUANDAT8048@GMAIL.COM</p>
       <p>🏥 Giấy phép kinh doanh: HCM-0077/ĐĐKD</p>
+      <h1>CÔNG TY TNHH DƯỢC PHẨM ĐẠT PHARMA</h1>
+      <p>📍 170 YÊN LÃNG | 📞 0797938048</p>
     </div>
   </div>
 
-  <!-- TIÊU ĐỀ PHIẾU -->
   <div class="doc-title">
-    <h2>Phiếu Xuất Kho</h2>
-    <p>Số phiếu: #${selectedDonHang.madonhang} &nbsp;·&nbsp; Ngày in: ${ngayIn}</p>
+    <h2>PHIẾU XUẤT KHO BÁN HÀNG</h2>
+    <p>Mã Hóa Đơn: <strong>#${selectedDonHang.madonhang}</strong> · Ngày in: ${ngayIn}</p>
+    ${selectedDonHang.mavandon3pl ? `
+    <div class="barcode-container">
+      <img src="https://bwipjs-api.metafloor.com/?bcid=code128&text=${selectedDonHang.mavandon3pl}&includetext=true" alt="Barcode"/>
+    </div>
+    ` : ''}
   </div>
 
-  <!-- THÔNG TIN ĐƠN HÀNG -->
   <div class="info-grid">
     <span class="label">Khách hàng:</span>
     <span class="value">${khachHang?.tendoitac || selectedDonHang.tendoitac || "---"}</span>
-
     <span class="label">Điện thoại:</span>
     <span class="value">${khachHang?.sodienthoai || "---"}</span>
-
     <span class="label">Địa chỉ:</span>
     <span class="value">${khachHang?.diachi || "---"}</span>
-
-    <span class="label">Ngày tạo đơn:</span>
-    <span class="value">${new Date(selectedDonHang.ngaytao).toLocaleDateString("vi-VN")}</span>
-
-    <span class="label">Mã vận đơn (Tracking):</span>
-    <span class="value">${selectedDonHang.mavandon3pl || "---"}</span>
-
     <span class="label">Ghi chú:</span>
-    <span class="value">${selectedDonHang.ghi_chu && selectedDonHang.ghi_chu.trim() ? selectedDonHang.ghi_chu.trim() : "<em style='color:#9ca3af;'>Không có ghi chú</em>"}</span>
+    <span class="value">${selectedDonHang.ghi_chu || "---"}</span>
   </div>
 
-  <!-- BẢNG HÀNG HÓA -->
   <table>
     <thead>
       <tr>
-        <th style="text-align:center; width:36px;">STT</th>
-        <th style="text-align:left;">Tên thuốc</th>
-        <th style="text-align:left; width:90px;">Số lô</th>
-        <th style="text-align:center; width:50px;">SL</th>
-        <th style="text-align:right; width:100px;">Đơn giá</th>
-        <th style="text-align:center; width:50px;">Tỷ lệ CK</th>
-        <th style="text-align:right; width:110px;">Thành tiền</th>
+        <th>STT</th><th>Tên thuốc</th><th>Số lô</th><th>SL</th><th>Đơn giá</th><th>CK</th><th>Thành tiền</th>
       </tr>
     </thead>
     <tbody>${tableRows}</tbody>
     <tfoot>
-      <tr>
-        <td colspan="6" style="text-align:right; padding-right:12px;">Tổng cộng:</td>
-        <td style="text-align:right; color:#1e40af;">${tongTien.toLocaleString("vi-VN")}đ</td>
-      </tr>
+      <tr><td colspan="6" style="text-align:right;">Tổng cộng:</td><td>${tongTien.toLocaleString("vi-VN")}đ</td></tr>
     </tfoot>
   </table>
 
-  <!-- TỔNG KẾT + QR -->
   <div class="bottom-section">
     <div class="totals">
-      <div class="row">
-        <span>Tổng tiền hàng</span>
-        <span>${tongTien.toLocaleString("vi-VN")}đ</span>
-      </div>
-      ${chietKhau > 0 ? `<div class="row"><span>Chiết khấu đơn hàng</span><span style="color:#f97316;">- ${chietKhau.toLocaleString("vi-VN")}đ</span></div>` : ""}
-      <div class="row highlight">
-        <span>Khách cần trả</span>
-        <span>${canTra.toLocaleString("vi-VN")}đ</span>
-      </div>
-      <div class="row">
-        <span>Đã thanh toán</span>
-        <span style="color:#16a34a;">${daTra.toLocaleString("vi-VN")}đ</span>
-      </div>
-      ${conNo > 0 ? `<div class="row debt"><span>⚠ Còn nợ</span><span>${conNo.toLocaleString("vi-VN")}đ</span></div>` : `<div class="row" style="color:#16a34a;font-weight:600;"><span>✓ Đã thanh toán đủ</span><span>0đ</span></div>`}
+      <div class="row"><span>Tổng tiền hàng</span><span>${tongTien.toLocaleString("vi-VN")}đ</span></div>
+      <div class="row"><span>Chiết khấu</span><span>- ${chietKhau.toLocaleString("vi-VN")}đ</span></div>
+      <div class="row"><span>Đã trả</span><span>${daTra.toLocaleString("vi-VN")}đ</span></div>
+      <div class="row" style="color:red; font-weight:bold;"><span>Còn nợ</span><span>${conNo.toLocaleString("vi-VN")}đ</span></div>
     </div>
-
     <div class="qr-box">
-      <img src="${vietQrUrl}" alt="QR Thanh toán" onerror="this.style.display='none'"/>
-      <p>Quét mã để thanh toán</p>
-      <strong>Thanh toan don hang XUAT${selectedDonHang.madonhang}</strong>
+      <img src="${vietQrUrl}" alt="QR" onerror="this.style.display='none'"/>
+      <p>Quét mã thanh toán</p>
     </div>
   </div>
-
-  <!-- FOOTER -->
-  <div class="footer">
-    Phiếu được tạo tự động bởi hệ thống PharmaManager · ${ngayIn}
-  </div>
-
   <script>window.onload = function(){ window.print(); window.onafterprint = function(){ window.close(); }; }</script>
 </body>
 </html>`;
@@ -874,6 +923,49 @@ export default function PhieuXuatView() {
   useEffect(() => {
     getData();
   }, []);
+
+  useEffect(() => {
+    const element = document.getElementById("reader-xuat");
+    if (!element || !showQrScanner) return;
+    
+    const scanner = new Html5QrcodeScanner(
+      "reader-xuat",
+      {
+        fps: 10,
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          const width = Math.floor(viewfinderWidth * 0.8);
+          const height = Math.floor(viewfinderHeight * 0.3);
+          return {
+            width: width < 250 ? 250 : width,
+            height: height < 100 ? 100 : height,
+          };
+        },
+        videoConstraints: { facingMode: "environment" },
+        formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128],
+        rememberLastUsedCamera: false,
+        showTorchButtonIfSupported: true,
+        disableFlip: true,
+      },
+      false,
+    );
+
+    scanner.render(success, error);
+
+    function success(result: any) {
+      scanner.clear().catch((err) => console.error("Lỗi đóng camera:", err));
+      setShowQrScanner(false);
+      const decodedString = (result || "").trim();
+      handleBarcodeSearch(decodedString);
+    }
+
+    function error(errorMessage: any) {
+      // ignore
+    }
+
+    return () => {
+      scanner.clear().catch(() => {});
+    };
+  }, [showQrScanner, danhSachDonHang]);
 
   if (showForm) {
     return (
@@ -935,12 +1027,12 @@ export default function PhieuXuatView() {
               gel!
             </div>
           )}
-          <div className='col-span-3 bg-white p-5 rounded-xl shadow-sm border border-gray-200 h-fit space-y-4'>
-            <h3 className='font-bold text-gray-700 border-b pb-2 uppercase text-sm'>
-              Thông tin
-            </h3>
-            <div className='flex items-start justify-around gap-2'>
-              <div className='flex-[1_1_30%] flex flex-col gap-2'>
+          <div className='bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6'>
+            <div className='grid grid-cols-2 gap-8'>
+              <div className='space-y-4 flex flex-col'>
+                <h3 className='font-bold text-gray-700 border-b pb-2 uppercase text-sm'>
+                  Thông tin giao dịch
+                </h3>
                 <div>
                   <label className='block text-xs font-medium text-gray-500 mb-1'>
                     KHÁCH HÀNG (*)
@@ -1010,176 +1102,175 @@ export default function PhieuXuatView() {
                     )}
                   </div>
                 )}
+
+                <div className='grid grid-cols-2 gap-4 mt-2 flex-1'>
+                  <div>
+                    <label className='block text-xs font-medium text-gray-500 mb-1'>
+                      TRACKING ID (*)
+                    </label>
+                    <div className='flex gap-2'>
+                      <input
+                        value={masterForm.mavandon3pl}
+                        onChange={(e) =>
+                          setMasterForm({
+                            ...masterForm,
+                            mavandon3pl: e.target.value,
+                          })
+                        }
+                        type='text'
+                        placeholder='DP-YYYY...'
+                        className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none'
+                      />
+                      <button
+                        type='button'
+                        onClick={handleAutoTracking}
+                        className='px-3 py-2 rounded-lg bg-yellow-500 text-white font-bold shadow hover:bg-yellow-600'
+                      >
+                        ⚡
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className='flex flex-col'>
+                    <label className='block text-xs font-medium text-gray-500 mb-1'>
+                      GHI CHÚ
+                    </label>
+                    <textarea
+                      value={masterForm.ghi_chu}
+                      onChange={(e) =>
+                        setMasterForm({ ...masterForm, ghi_chu: e.target.value })
+                      }
+                      rows={1}
+                      placeholder='Ghi chú thêm...'
+                      className='w-full h-full min-h-[42px] px-3 py-2 border border-gray-300 rounded-lg outline-none resize-none text-sm'
+                    />
+                  </div>
+                </div>
               </div>
-              <div className='flex-[1_1_30%] flex flex-col gap-2'>
-                <div>
-                  <label className='block text-xs font-medium text-gray-500 mb-1'>
-                    TRACKING ID (*)
-                  </label>
-                  <div className='flex gap-2'>
+
+              <div className='space-y-4 flex flex-col'>
+                <h3 className='font-bold text-gray-700 border-b pb-2 uppercase text-sm'>
+                  Chi tiết thanh toán
+                </h3>
+                
+                <div className='space-y-3'>
+                  <div className='flex justify-between items-center text-sm'>
+                    <span className='text-gray-500 font-bold uppercase text-[10px]'>
+                      Tiền hàng:
+                    </span>
+                    <span className='font-medium text-gray-800'>
+                      {formatCurrency(tongTienHang)}
+                    </span>
+                  </div>
+                  <div>
+                    <div className='flex justify-between items-center mb-1'>
+                      <label className='text-[10px] font-bold text-gray-500 uppercase'>
+                        Chiết khấu (VND):
+                      </label>
+                    </div>
                     <input
-                      value={masterForm.mavandon3pl}
+                      value={masterForm.tienchietkhau}
                       onChange={(e) =>
                         setMasterForm({
                           ...masterForm,
-                          mavandon3pl: e.target.value,
+                          tienchietkhau: Number(e.target.value),
                         })
                       }
-                      type='text'
-                      placeholder='DP-YYYYMMDD-XXXX'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none'
+                      type='number'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg text-right font-bold text-orange-600 outline-none'
                     />
-                    <button
-                      type='button'
-                      onClick={handleAutoTracking}
-                      className='px-3 py-2 rounded-lg bg-yellow-500 text-white font-bold shadow hover:bg-yellow-600'
-                    >
-                      ⚡
-                    </button>
+                  </div>
+                  <div className='flex justify-between items-center pt-2 border-t text-red-600'>
+                    <span className='font-bold text-sm'>KHÁCH PHẢI TRẢ:</span>
+                    <span className='font-black text-xl'>
+                      {formatCurrency(tongGiaTriDon)}
+                    </span>
                   </div>
                 </div>
 
-                <div>
-                  <label className='block text-xs font-medium text-gray-500 mb-1'>
-                    GHI CHÚ
-                  </label>
-                  <textarea
-                    value={masterForm.ghi_chu}
-                    onChange={(e) =>
-                      setMasterForm({ ...masterForm, ghi_chu: e.target.value })
-                    }
-                    rows={2}
-                    placeholder='Ghi chú thêm cho đơn hàng...'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none resize-none text-sm'
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className='pt-4 border-t border-dashed space-y-3'>
-              <div className='flex justify-between items-center text-sm'>
-                <span className='text-gray-500 font-bold uppercase text-[10px]'>
-                  Tiền hàng:
-                </span>
-                <span className='font-medium text-gray-800'>
-                  {formatCurrency(tongTienHang)}
-                </span>
-              </div>
-              <div>
-                <div className='flex justify-between items-center mb-1'>
-                  <label className='text-[10px] font-bold text-gray-500 uppercase'>
-                    Chiết khấu (VND):
-                  </label>
-                </div>
-                <input
-                  value={masterForm.tienchietkhau}
-                  onChange={(e) =>
-                    setMasterForm({
-                      ...masterForm,
-                      tienchietkhau: Number(e.target.value),
-                    })
-                  }
-                  type='number'
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg text-right font-bold text-orange-600 outline-none'
-                />
-              </div>
-              <div className='flex justify-between items-center pt-2 border-t text-red-600'>
-                <span className='font-bold text-sm'>KHÁCH PHẢI TRẢ:</span>
-                <span className='font-black text-xl'>
-                  {formatCurrency(tongGiaTriDon)}
-                </span>
-              </div>
-
-              {/* PANEL THANH TOÁN THÔNG MINH */}
-              <div className='border border-blue-200 rounded-xl overflow-hidden'>
-                <div className='bg-blue-600 px-3 py-2'>
-                  <p className='text-white font-bold text-[11px] uppercase tracking-wide'>
-                    💳 Hình thức thanh toán
-                  </p>
-                </div>
-                <div className='p-3 space-y-2 bg-blue-50'>
-                  {/* Lựa chọn */}
-                  {(
-                    [
-                      {
-                        key: "roi",
-                        label: "✅ Thanh toán RỒI",
-                        desc: "Khách trả đủ",
-                      },
-                      {
-                        key: "no",
-                        label: "📋 Ghi NỢ",
-                        desc: "Chưa trả đồng nào",
-                      },
-                      {
-                        key: "tratruoc",
-                        label: "💵 Trả trước 1 phần",
-                        desc: "Nhập số tiền đã trả",
-                      },
-                    ] as const
-                  ).map((opt) => (
-                    <label
-                      key={opt.key}
-                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer border transition ${
-                        hinhThucThanhToan === opt.key
-                          ? "bg-white border-blue-400 shadow-sm"
-                          : "border-transparent hover:bg-white/60"
-                      }`}
-                    >
-                      <input
-                        type='radio'
-                        name='hinhthuc'
-                        value={opt.key}
-                        checked={hinhThucThanhToan === opt.key}
-                        onChange={() => setHinhThucThanhToan(opt.key)}
-                        className='accent-blue-600'
-                      />
-                      <div>
-                        <p className='text-xs font-bold text-gray-800'>
-                          {opt.label}
-                        </p>
-                        <p className='text-[10px] text-gray-500'>{opt.desc}</p>
-                      </div>
-                    </label>
-                  ))}
-
-                  {/* Ô nhập tiền nếu chọn trả trước */}
-                  {hinhThucThanhToan === "tratruoc" && (
-                    <div className='pt-1'>
-                      <label className='block text-[10px] font-bold text-blue-700 mb-1 uppercase'>
-                        Số tiền đã trả (VND):
-                      </label>
-                      <input
-                        type='number'
-                        min='0'
-                        max={tongGiaTriDon}
-                        value={soTienDaTra}
-                        onChange={(e) => setSoTienDaTra(Number(e.target.value))}
-                        className='w-full px-3 py-2 border-2 border-blue-300 bg-white text-blue-700 rounded-lg text-right font-bold outline-none focus:ring-2 focus:ring-blue-500'
-                      />
+                <div className='border border-blue-200 rounded-xl overflow-hidden mt-auto'>
+                  <div className='bg-blue-600 px-3 py-2'>
+                    <p className='text-white font-bold text-[11px] uppercase tracking-wide'>
+                      💳 Hình thức thanh toán
+                    </p>
+                  </div>
+                  <div className='p-3 space-y-2 bg-blue-50'>
+                    <div className='grid grid-cols-3 gap-2'>
+                      {(
+                        [
+                          {
+                            key: "roi",
+                            label: "✅ Trả RỒI",
+                          },
+                          {
+                            key: "no",
+                            label: "📋 Ghi NỢ",
+                          },
+                          {
+                            key: "tratruoc",
+                            label: "💵 Trả trước",
+                          },
+                        ] as const
+                      ).map((opt) => (
+                        <label
+                          key={opt.key}
+                          className={`flex flex-col items-center justify-center p-2 rounded-lg cursor-pointer border transition text-center ${
+                            hinhThucThanhToan === opt.key
+                              ? "bg-white border-blue-400 shadow-sm"
+                              : "border-transparent hover:bg-white/60"
+                          }`}
+                        >
+                          <input
+                            type='radio'
+                            name='hinhthuc'
+                            value={opt.key}
+                            checked={hinhThucThanhToan === opt.key}
+                            onChange={() => setHinhThucThanhToan(opt.key)}
+                            className='accent-blue-600 mb-1'
+                          />
+                          <span className='text-xs font-bold text-gray-800 leading-tight'>
+                            {opt.label}
+                          </span>
+                        </label>
+                      ))}
                     </div>
-                  )}
 
-                  {/* Preview nợ còn lại */}
-                  <div className='flex justify-between items-center pt-2 border-t border-blue-200 mt-1'>
-                    <span className='text-[11px] font-bold text-gray-600 uppercase'>
-                      Còn nợ đơn này:
-                    </span>
-                    <span
-                      className={`font-black text-sm ${
-                        hinhThucThanhToan === "roi"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {hinhThucThanhToan === "roi"
-                        ? "0đ ✓"
-                        : hinhThucThanhToan === "no"
-                          ? formatCurrency(tongGiaTriDon)
-                          : formatCurrency(
-                              Math.max(0, tongGiaTriDon - soTienDaTra),
-                            )}
-                    </span>
+                    {hinhThucThanhToan === "tratruoc" && (
+                      <div className='pt-1'>
+                        <label className='block text-[10px] font-bold text-blue-700 mb-1 uppercase'>
+                          Số tiền đã trả (VND):
+                        </label>
+                        <input
+                          type='number'
+                          min='0'
+                          max={tongGiaTriDon}
+                          value={soTienDaTra}
+                          onChange={(e) => setSoTienDaTra(Number(e.target.value))}
+                          className='w-full px-3 py-2 border-2 border-blue-300 bg-white text-blue-700 rounded-lg text-right font-bold outline-none focus:ring-2 focus:ring-blue-500'
+                        />
+                      </div>
+                    )}
+
+                    <div className='flex justify-between items-center pt-2 border-t border-blue-200 mt-1'>
+                      <span className='text-[11px] font-bold text-gray-600 uppercase'>
+                        Còn nợ đơn này:
+                      </span>
+                      <span
+                        className={`font-black text-sm ${
+                          hinhThucThanhToan === "roi"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {hinhThucThanhToan === "roi"
+                          ? "0đ ✓"
+                          : hinhThucThanhToan === "no"
+                            ? formatCurrency(tongGiaTriDon)
+                            : formatCurrency(
+                                Math.max(0, tongGiaTriDon - soTienDaTra),
+                              )}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1200,34 +1291,20 @@ export default function PhieuXuatView() {
                 </button>
               </div>
 
-              <div className='overflow-x-auto min-h-[400px]'>
-                <table className='w-full text-left'>
+              <div className='overflow-hidden min-h-[400px]'>
+                <table className='w-full text-left table-fixed'>
                   <thead>
-                    <tr className='text-[11px] text-gray-500 uppercase border-b bg-gray-50'>
-                      <th className='p-3 min-w-[200px] font-bold'>Tên Thuốc</th>
-                      <th className='p-3 min-w-[220px] font-bold'>Lô & HSD</th>
-                      <th className='p-3 min-w-[150px] font-bold'>
-                        ĐV Quy Đổi
-                      </th>
-                      <th className='p-3 min-w-[120px] text-center font-bold text-blue-600'>
-                        SL Xuất
-                      </th>
-                      <th className='p-3 min-w-[150px] text-right font-bold'>
-                        Giá Vốn
-                      </th>
-                      <th className='p-3 min-w-[100px] text-center font-bold'>
-                        % Lãi
-                      </th>
-                      <th className='p-3 min-w-[150px] text-right text-red-600 font-bold'>
-                        Đơn Giá
-                      </th>
-                      <th className='p-3 min-w-[90px] text-center font-bold text-orange-600'>
-                        CK%
-                      </th>
-                      <th className='p-3 min-w-[140px] text-right font-bold text-green-700'>
-                        Thành Tiền
-                      </th>
-                      <th className='p-3 w-10'></th>
+                    <tr className='text-[10px] text-gray-500 uppercase border-b bg-gray-50'>
+                      <th className='p-2 w-[18%] font-bold'>Tên Thuốc</th>
+                      <th className='p-2 w-[16%] font-bold'>Lô & HSD</th>
+                      <th className='p-2 w-[12%] font-bold'>ĐV Quy Đổi</th>
+                      <th className='p-2 w-[8%] text-center font-bold text-blue-600'>SL Xuất</th>
+                      <th className='p-2 w-[10%] text-right font-bold'>Giá Vốn</th>
+                      <th className='p-2 w-[7%] text-center font-bold'>% Lãi</th>
+                      <th className='p-2 w-[11%] text-right text-red-600 font-bold'>Đơn Giá</th>
+                      <th className='p-2 w-[6%] text-center font-bold text-orange-600'>CK%</th>
+                      <th className='p-2 w-[10%] text-right font-bold text-green-700'>Thành Tiền</th>
+                      <th className='p-2 w-8'></th>
                     </tr>
                   </thead>
                   <tbody>{renderItems(chiTietData)}</tbody>
@@ -1246,7 +1323,27 @@ export default function PhieuXuatView() {
         <h2 className='text-2xl font-bold text-gray-800'>
           Quản lý Xuất Kho (Bán sỉ)
         </h2>
-        <div className='flex gap-4'>
+        <div className='flex gap-4 items-center'>
+          <div className='relative flex items-center'>
+            <input 
+              type="text" 
+              placeholder="🔍 Quét mã vạch hóa đơn..." 
+              className="pl-4 pr-10 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-[260px] text-sm"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleBarcodeSearch(e.currentTarget.value);
+                  e.currentTarget.value = "";
+                }
+              }}
+            />
+            <button 
+              onClick={() => setShowQrScanner(true)}
+              className="absolute right-2 text-gray-400 hover:text-blue-600 transition"
+              title="Quét bằng ảnh/camera"
+            >
+              <ScanQrCode size={20} />
+            </button>
+          </div>
           <AddBtn func={openForm} placeholder='Tạo Đơn Xuất' />
           <ReloadBtn func={getData} />
         </div>
@@ -1262,8 +1359,8 @@ export default function PhieuXuatView() {
               <tr className='bg-gray-50 text-gray-600 text-sm border-b'>
                 <th className='p-4 font-semibold'>Mã ĐH</th>
                 <th className='p-4 font-semibold'>Khách Hàng</th>
-                <th className='p-4 font-semibold'>Phải Thu</th>
-                <th className='p-4 font-semibold'>Công Nợ Khách</th>
+                <th className='p-4 font-semibold'>Tổng Tiền Hàng</th>
+                <th className='p-4 font-semibold'>Phải Thu (Công Nợ)</th>
                 <th className='p-4 font-semibold'>Ngày Tạo</th>
                 <th className='p-4 font-semibold'>Trạng Thái</th>
                 <th className='p-4 font-semibold text-center'>Hành Động</th>
@@ -1317,186 +1414,188 @@ export default function PhieuXuatView() {
         </div>
       )}
 
-      {/* Detail Modal */}
-      {showDetailModal && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 print:hidden'>
-          <div className='print-area w-full max-w-5xl bg-white rounded-2xl shadow-xl border border-gray-200'>
-            <div className='flex items-center justify-between px-6 py-4 border-b'>
+      {/* MODAL CHI TIẾT */}
+      {showDetailModal && selectedDonHang && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto'>
+          <div className='bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden'>
+            <div className='bg-gray-100 px-6 py-4 flex justify-between items-center border-b'>
               <div>
-                <h3 className='text-xl font-bold text-gray-800'>
-                  Chi tiết Phiếu Xuất
+                <h3 className='font-bold text-gray-800 text-lg'>
+                  Chi Tiết Đơn Hàng #{selectedDonHang.madonhang}
                 </h3>
-                {selectedDonHang && (
-                  <p className='text-xs text-gray-500'>
-                    Mã đơn: #{selectedDonHang.madonhang} ·{" "}
-                    {formatDate(selectedDonHang.ngaytao)}
-                  </p>
-                )}
+                <p className='text-xs text-gray-500'>
+                  Ngày tạo: {formatDate(selectedDonHang.ngaytao)}
+                </p>
               </div>
               <button
-                onClick={closeDetailModal}
-                className='print-hidden w-9 h-9 rounded-full bg-gray-100 text-gray-600 font-bold hover:bg-gray-200'
+                onClick={() => setShowDetailModal(false)}
+                className='text-gray-500 hover:bg-gray-200 p-1.5 rounded-lg transition'
               >
-                ×
+                <X size={24} />
               </button>
             </div>
 
-            <div className='p-6 space-y-6'>
-              <div className='grid grid-cols-12 gap-6'>
-                <div className='col-span-8'>
-                  <div className='flex items-center justify-between mb-3'>
-                    <h4 className='font-bold text-gray-700 uppercase text-sm'>
-                      Danh sách hàng hóa
-                    </h4>
-                    <span className='text-xs text-gray-400'>Đơn xuất kho</span>
-                  </div>
-                  <div className='overflow-x-auto border rounded-xl'>
-                    <table className='w-full text-left text-sm'>
-                      <thead>
-                        <tr className='bg-gray-50 text-gray-500 uppercase text-[11px]'>
-                          <th className='p-3 font-bold'>Thuốc</th>
-                          <th className='p-3 font-bold'>Số lượng</th>
-                          <th className='p-3 font-bold'>Đơn giá</th>
-                          <th className='p-3 font-bold text-right'>
-                            Thành tiền
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {isLoadingDetail ? (
-                          <tr>
-                            <td
-                              colSpan={4}
-                              className='p-4 text-center text-gray-400'
-                            >
-                              Đang tải chi tiết...
-                            </td>
-                          </tr>
-                        ) : chiTietDonHang.length === 0 ? (
-                          <tr>
-                            <td
-                              colSpan={4}
-                              className='p-4 text-center text-gray-400'
-                            >
-                              Không có dữ liệu.
-                            </td>
-                          </tr>
-                        ) : (
-                          chiTietDonHang.map((ct, idx) => (
-                            <tr key={idx} className='border-t'>
-                              <td className='p-3 font-medium text-gray-700'>
-                                {ct.tenthuoc || ct.mathuoc}
-                              </td>
-                              <td className='p-3'>{ct.soluongthucte}</td>
-                              <td className='p-3 text-gray-600'>
-                                {formatCurrency(ct.dongia)}
-                              </td>
-                              <td className='p-3 text-right font-semibold text-gray-800'>
-                                {formatCurrency(ct.soluongthucte * ct.dongia)}
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+            <div className='p-6 overflow-y-auto flex-1'>
+              {isLoadingDetail ? (
+                <div className='text-center py-10 text-gray-500'>
+                  Đang tải chi tiết...
                 </div>
-
-                <div className='col-span-4 space-y-4'>
-                  <div className='border rounded-xl p-4 bg-gray-50'>
-                    <h4 className='font-bold text-gray-700 uppercase text-xs mb-3'>
-                      Tổng kết tài chính
-                    </h4>
-                    <div className='space-y-2 text-sm'>
-                      <div className='flex justify-between'>
-                        <span className='text-gray-500'>Tổng tiền hàng</span>
-                        <span className='font-semibold text-gray-800'>
-                          {formatCurrency(tongTienHangModal)}
-                        </span>
-                      </div>
-                      <div className='flex justify-between'>
-                        <span className='text-gray-500'>Chiết khấu</span>
-                        <span className='font-semibold text-orange-600'>
-                          - {formatCurrency(chietKhauModal)}
-                        </span>
-                      </div>
-                      <div className='flex justify-between border-t pt-2'>
-                        <span className='font-bold text-gray-700'>
-                          Khách cần trả
-                        </span>
-                        <span className='font-black text-red-600'>
-                          {formatCurrency(khachCanTraModal)}
-                        </span>
-                      </div>
+              ) : (
+                <div className='space-y-6'>
+                  <div className='grid grid-cols-2 gap-6 bg-blue-50 p-4 rounded-xl border border-blue-100'>
+                    <div className='space-y-2'>
+                      <p className='text-sm text-gray-600 font-medium uppercase'>
+                        Thông tin khách hàng
+                      </p>
+                      <p className='font-bold text-gray-800'>
+                        {selectedDonHang.tendoitac}
+                      </p>
+                      <p className='text-sm text-gray-600'>
+                        SĐT: {danhSachKhachHang.find(kh => kh.madoitac === selectedDonHang.madoitac)?.sodienthoai || selectedDonHang.sodienthoai || "---"}
+                      </p>
+                      <p className='text-sm text-gray-600'>
+                        Địa chỉ: {danhSachKhachHang.find(kh => kh.madoitac === selectedDonHang.madoitac)?.diachi || selectedDonHang.diachi || "---"}
+                      </p>
+                    </div>
+                    <div className='space-y-2'>
+                      <p className='text-sm text-gray-600 font-medium uppercase'>
+                        Vận đơn & Ghi chú
+                      </p>
+                      <p className='text-sm font-bold text-blue-700'>
+                        Tracking: {selectedDonHang.mavandon3pl || "---"}
+                      </p>
+                      <p className='text-sm text-gray-600'>
+                        Ghi chú: {selectedDonHang.ghi_chu || "---"}
+                      </p>
                     </div>
                   </div>
 
-                  <div className='border rounded-xl p-4 bg-white'>
-                    <h4 className='font-bold text-gray-700 uppercase text-xs mb-3'>
-                      VietQR thanh toán
+                  <div>
+                    <h4 className='font-bold text-gray-800 mb-3 uppercase text-sm'>
+                      Danh sách hàng hóa xuất
                     </h4>
-                    <div className='flex flex-col items-center gap-3'>
-                      {vietQrUrl && (
-                        <img
-                          src={vietQrUrl}
-                          alt='VietQR'
-                          className='w-48 h-48 rounded-lg border'
-                        />
-                      )}
-                      {selectedDonHang && (
-                        <p className='text-[11px] text-gray-500 text-center'>
-                          Nội dung chuyển khoản:{" "}
-                          <strong>
-                            Thanh toan don hang XUAT
-                            {selectedDonHang.madonhang}
-                          </strong>
-                        </p>
-                      )}
+                    <div className='border rounded-lg overflow-hidden'>
+                      <table className='w-full text-left border-collapse text-sm'>
+                        <thead>
+                          <tr className='bg-gray-100 text-gray-600 border-b'>
+                            <th className='p-3 font-semibold'>STT</th>
+                            <th className='p-3 font-semibold'>Thuốc</th>
+                            <th className='p-3 font-semibold'>Lô</th>
+                            <th className='p-3 font-semibold text-center'>SL</th>
+                            <th className='p-3 font-semibold text-right'>Đơn giá</th>
+                            <th className='p-3 font-semibold text-center'>CK(%)</th>
+                            <th className='p-3 font-semibold text-right'>Thành tiền</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {chiTietDonHang.map((ct, idx) => {
+                            const sl = Number(ct.soluongthucte || 0);
+                            const dg = Number(ct.dongia || 0);
+                            const ck = Number(ct.tienchietchkhau || 0);
+                            const thanhtien = Math.max(0, sl * dg - ck);
+                            return (
+                              <tr key={idx} className='border-b hover:bg-gray-50'>
+                                <td className='p-3 text-center text-gray-500'>
+                                  {idx + 1}
+                                </td>
+                                <td className='p-3 font-bold text-gray-800'>
+                                  {ct.tenthuoc || ct.mathuoc}
+                                </td>
+                                <td className='p-3 text-gray-500 text-xs'>
+                                  {ct.solo || ct.solo_tam || "---"}
+                                </td>
+                                <td className='p-3 text-center font-medium'>{sl}</td>
+                                <td className='p-3 text-right text-gray-600'>
+                                  {dg.toLocaleString("vi-VN")}đ
+                                </td>
+                                <td className='p-3 text-center text-orange-500'>
+                                  {Number(ct.tylechietchkhau || 0)}%
+                                </td>
+                                <td className='p-3 text-right font-bold text-green-600'>
+                                  {thanhtien.toLocaleString("vi-VN")}đ
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
+              )}
+            </div>
+
+            <div className='bg-gray-50 px-6 py-4 border-t flex justify-between items-center'>
+              <div className='text-sm text-gray-500 space-y-1'>
+                <p>
+                  Tổng tiền hàng:{" "}
+                  <span className='font-bold text-gray-800'>
+                    {formatCurrency(tongTienHangModal)}
+                  </span>
+                </p>
+                <p>
+                  Chiết khấu hóa đơn:{" "}
+                  <span className='font-bold text-orange-600'>
+                    -{formatCurrency(chietKhauModal)}
+                  </span>
+                </p>
+                <p>
+                  Đã thanh toán trước:{" "}
+                  <span className='font-bold text-green-600'>
+                    {formatCurrency(selectedDonHang.tiendathanhtoan || 0)}
+                  </span>
+                </p>
+              </div>
+              <div className='text-right'>
+                <p className='text-xs text-gray-500 font-bold uppercase mb-1'>
+                  Khách phải trả (Còn nợ)
+                </p>
+                <p className='text-2xl font-black text-red-600'>
+                  {formatCurrency(khachCanTraModal)}
+                </p>
               </div>
             </div>
 
-            <div className='print-hidden flex items-center justify-end gap-3 px-6 py-4 border-t bg-gray-50 rounded-b-2xl'>
-              <button
-                onClick={closeDetailModal}
-                className='px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300'
-              >
-                Đóng
-              </button>
+            <div className='px-6 py-3 bg-white border-t flex justify-end gap-3'>
               <button
                 onClick={handlePrint}
-                className='px-4 py-2 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700'
+                className='px-6 py-2 bg-blue-600 text-white font-bold rounded-lg shadow hover:bg-blue-700 transition'
               >
-                Xuất PDF / In Đơn
+                In Phiếu Xuất Kho
+              </button>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                className='px-6 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg shadow hover:bg-gray-300 transition'
+              >
+                Đóng
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <style>{`
-                @media print {
-                    body * {
-                        visibility: hidden;
-                    }
-                    .print-area, .print-area * {
-                        visibility: visible;
-                    }
-                    .print-area {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                        box-shadow: none !important;
-                        border: none !important;
-                    }
-                    .print-hidden {
-                        display: none !important;
-                    }
-                }
-            `}</style>
+      {/* MODAL QUÉT MÃ VẠCH (CAMERA / TẢI ẢNH) */}
+      {showQrScanner && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
+          <div className='bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden relative'>
+            <div className='bg-gray-100 px-4 py-3 flex justify-between items-center border-b'>
+              <h3 className='font-bold text-gray-800'>
+                Quét mã vạch Hóa đơn
+              </h3>
+              <button
+                onClick={() => setShowQrScanner(false)}
+                className='text-gray-500 hover:bg-gray-200 p-1 rounded transition'
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className='p-4'>
+              <p className='text-xs text-gray-500 mb-2 text-center'>Đưa mã vạch vào khung hình hoặc chọn tải ảnh lên</p>
+              <div id='reader-xuat'></div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
