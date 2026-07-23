@@ -14,6 +14,7 @@ import LichSuDonHangView from '../views/lichSuDonHang';
 import TaiKhoanView from '../views/taiKhoan';
 import BaoCaoView from '../views/baoCao';
 import TraCuuDonHangView from '../views/traCuuDonHang';
+import ViTriKhoView from '../views/viTriKho';
 import { useAuthStore } from '../context/useAuthStore';
 import PhieuNhapView from '../views/phieuNhap';
 import PhieuXuatView from '../views/phieuXuat';
@@ -59,6 +60,7 @@ const router = createBrowserRouter([
       { path: 'don-vi-tinh', element: <DonViTinhView /> },
       { path: 'lo-thuoc', element: <LoThuocView /> },
       { path: 'doi-tac', element: <DoiTacView /> },
+      { path: 'vi-tri-kho', element: <ViTriKhoView /> },
       { path: 'duyet-don', element: <DuyetDonHangView /> },
       { path: 'kiem-ke', element: <KiemKeView /> },
       { path: 'lich-su-don-hang', element: <LichSuDonHangView /> },
