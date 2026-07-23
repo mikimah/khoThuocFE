@@ -15,6 +15,7 @@ import {
   ScrollText,
   Users,
   ChartNoAxesCombined,
+  MapPin,
 } from "lucide-react";
 
 export default function SideBar() {
@@ -56,6 +57,9 @@ export default function SideBar() {
             </NavLink>
             <NavLink to='/doi-tac' className={getMenuClass}>
               <Handshake className='inline-block w-5 h-5 mr-2' /> Đối tác
+            </NavLink>
+            <NavLink to='/vi-tri-kho' className={getMenuClass}>
+              <MapPin className='inline-block w-5 h-5 mr-2' /> Vị trí kệ
             </NavLink>
 
             {(isKho) && (
