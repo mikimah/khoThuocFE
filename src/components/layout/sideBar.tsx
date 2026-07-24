@@ -50,7 +50,7 @@ export default function SideBar() {
               <ChartColumnBig className='inline-block w-5 h-5 mr-2' /> Tổng quan
             </NavLink>
             <NavLink to='/don-vi-tinh' className={getMenuClass}>
-                  <Scale className='inline-block w-5 h-5 mr-2' /> Đơn vị tính
+              <Scale className='inline-block w-5 h-5 mr-2' /> Đơn vị tính
             </NavLink>
             <NavLink to='/thuoc' className={getMenuClass}>
               <Pill className='inline-block w-5 h-5 mr-2' /> Danh mục Thuốc
@@ -58,11 +58,8 @@ export default function SideBar() {
             <NavLink to='/doi-tac' className={getMenuClass}>
               <Handshake className='inline-block w-5 h-5 mr-2' /> Đối tác
             </NavLink>
-            <NavLink to='/vi-tri-kho' className={getMenuClass}>
-              <MapPin className='inline-block w-5 h-5 mr-2' /> Vị trí kệ
-            </NavLink>
 
-            {(isKho) && (
+            {isKho && (
               <>
                 <NavLink to='/lo-thuoc' className={getMenuClass}>
                   <Boxes className='inline-block w-5 h-5 mr-2' /> Quản lý Lô
@@ -70,23 +67,28 @@ export default function SideBar() {
                 <NavLink to='/nhap-kho' className={getMenuClass}>
                   <Box className='inline-block w-5 h-5 mr-2' /> Nhập kho
                 </NavLink>
+                <NavLink to='/vi-tri-kho' className={getMenuClass}>
+                  <MapPin className='inline-block w-5 h-5 mr-2' /> Vị trí kệ
+                </NavLink>
                 <NavLink to='/kiem-ke' className={getMenuClass}>
                   <Clipboard className='inline-block w-5 h-5 mr-2' /> Kiểm kê
                 </NavLink>
                 <NavLink to='/lich-su-don-hang' className={getMenuClass}>
-                  <ScrollText className='inline-block w-5 h-5 mr-2' /> Lịch sử đơn hàng
+                  <ScrollText className='inline-block w-5 h-5 mr-2' /> Lịch sử
+                  đơn hàng
                 </NavLink>
               </>
             )}
 
             {/* PHÂN HỆ SALES: Chỉ Admin và Nhân viên Sales được thấy */}
-            {(isSales) && (
+            {isSales && (
               <>
                 <NavLink to='/xuat-kho' className={getMenuClass}>
                   <Truck className='inline-block w-5 h-5 mr-2' /> Xuất kho
                 </NavLink>
                 <NavLink to='/lich-su-don-hang' className={getMenuClass}>
-                  <ScrollText className='inline-block w-5 h-5 mr-2' /> Lịch sử đơn hàng
+                  <ScrollText className='inline-block w-5 h-5 mr-2' /> Lịch sử
+                  đơn hàng
                 </NavLink>
               </>
             )}
@@ -98,16 +100,22 @@ export default function SideBar() {
                   <Boxes className='inline-block w-5 h-5 mr-2' /> Quản lý Lô
                 </NavLink>
                 <NavLink to='/duyet-don' className={getMenuClass}>
-                  <CircleCheck className='inline-block w-5 h-5 mr-2' /> Duyệt đơn hàng
+                  <CircleCheck className='inline-block w-5 h-5 mr-2' /> Duyệt
+                  đơn hàng
+                </NavLink>
+                <NavLink to='/vi-tri-kho' className={getMenuClass}>
+                  <MapPin className='inline-block w-5 h-5 mr-2' /> Vị trí kệ
                 </NavLink>
                 <NavLink to='/lich-su-don-hang' className={getMenuClass}>
-                  <ScrollText className='inline-block w-5 h-5 mr-2' /> Lịch sử giao dịch
+                  <ScrollText className='inline-block w-5 h-5 mr-2' /> Lịch sử
+                  giao dịch
                 </NavLink>
                 <NavLink to='/tai-khoan' className={getMenuClass}>
                   <Users className='inline-block w-5 h-5 mr-2' /> Tài khoản
                 </NavLink>
                 <NavLink to='/bao-cao' className={getMenuClass}>
-                  <ChartNoAxesCombined className='inline-block w-5 h-5 mr-2' /> Báo cáo Doanh thu
+                  <ChartNoAxesCombined className='inline-block w-5 h-5 mr-2' />{" "}
+                  Báo cáo Doanh thu
                 </NavLink>
               </>
             )}
@@ -131,7 +139,11 @@ export default function SideBar() {
                   </span>
                   {/* Hiển thị chính xác chức danh của 3 nhóm */}
                   <span className='text-[10px] text-gray-500 uppercase font-bold'>
-                    {isAdmin ? "Quản trị viên" : isKho ? "Nhân viên Kho" : "Nhân viên Sales"}
+                    {isAdmin
+                      ? "Quản trị viên"
+                      : isKho
+                        ? "Nhân viên Kho"
+                        : "Nhân viên Sales"}
                   </span>
                 </div>
               </div>

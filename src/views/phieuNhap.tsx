@@ -585,7 +585,7 @@ export default function PhieuNhapView() {
   };
 
   const getLineTotal = (item: any) =>
-    (Number(item?.soluongthucte) || 0) *
+    (Number(item?.soluongyeucau) || 0) *
     (Number(item?.dongia || item?.gianhap) || 0);
 
   const tongTienHangChiTiet = useMemo(() => {
@@ -595,8 +595,6 @@ export default function PhieuNhapView() {
   useEffect(() => {
     getData();
   }, []);
-
-
 
   if (showForm) {
     return (
@@ -792,31 +790,27 @@ export default function PhieuNhapView() {
                   Chi tiết hàng nhập (Vốn)
                 </h3>
                 <div className='flex items-center justify-center gap-2 divide-x-1'>
-                  <div className='flex gap-2 pr-2'>
-                    <input
-                      className='border border-gray-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-400'
-                      type='text'
-                      placeholder='Nhập mã vạch'
-                      value={barcodeContent}
-                      onChange={(e) => setBarcodeContent(e.target.value)}
-                    />
-                    <button
-                      className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-bold border border-blue-200 transition'
-                      onClick={() => handleScan(barcodeContent)}
-                    >
-                      Nhập
-                    </button>
-                  </div>
                   <div className='flex gap-2'>
-                    <button
-                      type='button'
-                      className='text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 p-2 rounded-lg font-bold border border-blue-200 transition'
-                    >
-                      <ScanQrCode
-                        size={20}
-                        onClick={() => setShowQrScanner(true)}
+                    <div className='relative flex items-center'>
+                      <input
+                        type='text'
+                        placeholder='Nhập mã vạch hóa đơn...'
+                        className='pl-4 pr-10 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-[260px] text-sm'
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleScan(e.currentTarget.value);
+                            e.currentTarget.value = "";
+                          }
+                        }}
                       />
-                    </button>
+                      <button
+                        onClick={() => setShowQrScanner(true)}
+                        className='absolute right-2 text-gray-400 hover:text-blue-600 transition'
+                        title='Quét bằng ảnh/camera'
+                      >
+                        <ScanQrCode size={20} />
+                      </button>
+                    </div>
                     <button
                       onClick={themDongChiTiet}
                       type='button'
@@ -831,16 +825,26 @@ export default function PhieuNhapView() {
               <div className='overflow-x-auto min-h-[400px]'>
                 <table className='w-full text-left'>
                   {showQrScanner && (
-                    <div className='z-20 flex items-center justify-center absolute top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-black/20'>
-                      <div
-                        id='reader'
-                        className={`w-[60%] mt-5 p-5 h-auto bg-white flex flex-col justify-center items-center `}
-                      ></div>
-                      <X
-                        size={40}
-                        className='absolute top-[40%] bg-white rounded-full right-4 cursor-pointer'
-                        onClick={() => setShowQrScanner(false)}
-                      />
+                    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
+                      <div className='bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden relative'>
+                        <div className='bg-gray-100 px-4 py-3 flex justify-between items-center border-b'>
+                          <h3 className='font-bold text-gray-800'>
+                            Quét mã vạch Hóa đơn
+                          </h3>
+                          <button
+                            onClick={() => setShowQrScanner(false)}
+                            className='text-gray-500 hover:bg-gray-200 p-1 rounded transition'
+                          >
+                            <X size={20} />
+                          </button>
+                        </div>
+                        <div className='p-4'>
+                          <p className='text-xs text-gray-500 mb-2 text-center'>
+                            Đưa mã vạch vào khung hình hoặc chọn tải ảnh lên
+                          </p>
+                          <div id='reader'></div>
+                        </div>
+                      </div>
                     </div>
                   )}
                   <thead>
@@ -848,12 +852,8 @@ export default function PhieuNhapView() {
                       <th className='p-2 w-[22%] font-bold rounded-tl-lg'>
                         Tên Thuốc
                       </th>
-                      <th className='p-2 w-[12%] font-bold'>
-                        ĐV Giao Dịch
-                      </th>
-                      <th className='p-2 w-[15%] font-bold'>
-                        Lô / HSD
-                      </th>
+                      <th className='p-2 w-[12%] font-bold'>ĐV Giao Dịch</th>
+                      <th className='p-2 w-[15%] font-bold'>Lô / HSD</th>
                       <th className='p-2 w-[7%] text-center font-bold'>
                         SL CT
                       </th>

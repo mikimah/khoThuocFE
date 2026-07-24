@@ -318,7 +318,7 @@ export default function DuyetDonHangView() {
     if (explicit !== undefined && explicit !== null) return Number(explicit);
     const tonHeThong = getTonHeThong(row);
     if (tonHeThong === null) return null;
-    return tonHeThong - Number(row?.soluong_tru || 0);
+    return tonHeThong - Number(row?.soluong_lech || 0);
   };
 
   return (
@@ -591,17 +591,17 @@ export default function DuyetDonHangView() {
                                 </td>
                                 <td
                                   className={`px-5 py-3 text-sm text-right font-black ${
-                                    Number(row.soluong_tru) > 0
+                                    Number(row.soluong_lech) > 0
                                       ? "text-red-600"
-                                      : Number(row.soluong_tru) < 0
+                                      : Number(row.soluong_lech) < 0
                                         ? "text-green-600"
                                         : "text-gray-400"
                                   }`}
                                 >
-                                  {Number(row.soluong_tru) > 0
-                                    ? `-${row.soluong_tru}`
-                                    : Number(row.soluong_tru) < 0
-                                      ? `+${Math.abs(row.soluong_tru)}`
+                                  {Number(row.soluong_lech) > 0
+                                    ? `-${row.soluong_lech}`
+                                    : Number(row.soluong_lech) < 0
+                                      ? `+${Math.abs(row.soluong_lech)}`
                                       : "0"}
                                 </td>
                                 <td className='px-5 py-3 text-sm text-gray-600 italic'>

@@ -1327,7 +1327,7 @@ export default function PhieuXuatView() {
           <div className='relative flex items-center'>
             <input 
               type="text" 
-              placeholder="🔍 Quét mã vạch hóa đơn..." 
+              placeholder="Nhập mã vạch hóa đơn..." 
               className="pl-4 pr-10 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 w-[260px] text-sm"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
